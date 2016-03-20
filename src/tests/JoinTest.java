@@ -2,9 +2,11 @@ package tests;
 //originally from : joins.C
 
 import iterator.*;
+import iterator.Iterator;
 import heap.*;
 import global.*;
 import index.*;
+
 import java.io.*;
 import java.util.*;
 import java.lang.*;
@@ -374,15 +376,17 @@ class JoinsDriver implements GlobalConst {
   public boolean runTests() {
     
     Disclaimer();
-    Query1();
+    /*Query1();
     
-    Query2();
+     Query2();
     Query3();
     
    
     Query4();
     Query5();
-    Query6();
+    Query6();*/
+    
+    Query7();
     
     
     System.out.print ("Finished joins testing"+"\n");
@@ -525,6 +529,31 @@ class JoinsDriver implements GlobalConst {
  
     expr2[2] = null;
   }
+  
+  private void Query7_CondExpr(CondExpr[] expr,String conditionalOperator) {
+	  
+	  	/*Q_1 Q_1
+	    Q
+	    Q_3 1 Q_3*/
+	    expr[0].next  = null;
+	    if(conditionalOperator.equalsIgnoreCase("1")){
+	    	expr[0].op    = new AttrOperator(AttrOperator.aopLT);
+	    }
+	    else if(conditionalOperator.equalsIgnoreCase("2")){
+	    	expr[0].op    = new AttrOperator(AttrOperator.aopLE);
+	    }
+	    else if(conditionalOperator.equalsIgnoreCase("3")){
+	    	expr[0].op    = new AttrOperator(AttrOperator.aopGE);
+	    }
+	    else{
+	    	expr[0].op    = new AttrOperator(AttrOperator.aopGT);
+	    }
+	    
+	    expr[0].type1 = new AttrType(AttrType.attrInteger);
+	    expr[0].type2 = new AttrType(AttrType.attrInteger);
+	    expr[0].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer),3); // Changed from 1 to 3 because want to compare the third one
+	    expr[0].operand2.symbol = new FldSpec (new RelSpec(RelSpec.innerRel),3);
+	  }
 
   public void Query1() {
     
@@ -1674,6 +1703,225 @@ class JoinsDriver implements GlobalConst {
       
     }
   
+	public void Query7() {
+
+		// 1 is LE
+		String conditionalOperator = "1";
+
+		System.out
+				.print("**********************Query7 strating *********************\n");
+		boolean status = OK;
+
+		// Sailors, Boats, Reserves Queries.
+		System.out.print("Query: Find the names of sailors who have reserved "
+				+ "boat number 1.\n"
+				+ "       and print out the date of reservation.\n\n"
+				+ "  SELECT S.sname, R.date\n"
+				+ "  FROM   Sailors S, Reserves R\n"
+				+ "  WHERE  S.sid = R.sid AND R.bid = 1\n\n");
+
+		System.out
+				.print("\n(Tests FileScan, Projection, and Sort-Merge Join)\n");
+
+		CondExpr[] outFilter = new CondExpr[3];
+		outFilter[0] = new CondExpr();
+
+		Query7_CondExpr(outFilter, conditionalOperator);
+
+		Tuple t = new Tuple();
+
+		AttrType[] Stypes = new AttrType[4];
+		Stypes[0] = new AttrType(AttrType.attrInteger);
+		Stypes[1] = new AttrType(AttrType.attrInteger);
+		Stypes[2] = new AttrType(AttrType.attrInteger);
+		Stypes[3] = new AttrType(AttrType.attrInteger);
+
+		// SOS
+		short[] Ssizes = new short[1];
+		Ssizes[0] = 30; // first elt. is 30
+
+		FldSpec[] Sprojection = new FldSpec[4];
+		Sprojection[0] = new FldSpec(new RelSpec(RelSpec.outer), 1);
+		Sprojection[1] = new FldSpec(new RelSpec(RelSpec.outer), 2);
+		Sprojection[2] = new FldSpec(new RelSpec(RelSpec.outer), 3);
+		Sprojection[3] = new FldSpec(new RelSpec(RelSpec.outer), 4);
+
+		CondExpr[] selects = new CondExpr[1];
+		selects = null;
+
+		// TODO
+		// Check with scott for file scan
+		FileScan am = null;
+		//For loading the R, S and Q.txt
+		DBBuilder builder = new DBBuilder();
+		try {
+			am = new FileScan("R.in", Stypes, Ssizes, (short) 4,
+					(short) 4, Sprojection, null);
+			
+			
+		} catch (Exception e) {
+			status = FAIL;
+			System.err.println("" + e);
+		}
+
+		if (status != OK) {
+			// bail out
+			System.err.println("*** Error setting up scan for sailors");
+			Runtime.getRuntime().exit(1);
+		}
+
+		AttrType[] Rtypes = new AttrType[4];
+		Rtypes[0] = new AttrType(AttrType.attrInteger);
+		Rtypes[1] = new AttrType(AttrType.attrInteger);
+		Rtypes[2] = new AttrType(AttrType.attrInteger);
+		Rtypes[3] = new AttrType(AttrType.attrInteger);
+
+		short[] Rsizes = new short[1];
+		Rsizes[0] = 30;
+		FldSpec[] Rprojection = new FldSpec[4];
+		Rprojection[0] = new FldSpec(new RelSpec(RelSpec.outer), 1);
+		Rprojection[1] = new FldSpec(new RelSpec(RelSpec.outer), 2);
+		Rprojection[2] = new FldSpec(new RelSpec(RelSpec.outer), 3);
+		Rprojection[3] = new FldSpec(new RelSpec(RelSpec.outer), 4);
+		
+		FileScan am2 = null;
+		try {
+			am2 = new FileScan("R.in", Rtypes, Rsizes, (short) 4,
+					(short) 4, Rprojection, null);
+		} catch (Exception e) {
+			status = FAIL;
+			System.err.println("" + e);
+		}
+
+		if (status != OK) {
+			// bail out
+			System.err.println("*** Error setting up scan for reserves");
+			Runtime.getRuntime().exit(1);
+		}
+
+		// END TODO
+
+		// Projection list specified what should be in the output tuple.
+		// So adding 1 -> column of outer and 1 -> column of inner for
+		// displaying output tuple
+		FldSpec[] proj_list = new FldSpec[2];
+		proj_list[0] = new FldSpec(new RelSpec(RelSpec.outer), 1);
+		proj_list[1] = new FldSpec(new RelSpec(RelSpec.innerRel), 1);
+
+		// Need to set output type as integer. Since all our output are in
+		// integers
+		AttrType[] jtype = new AttrType[2];
+		jtype[0] = new AttrType(AttrType.attrInteger);
+		jtype[1] = new AttrType(AttrType.attrInteger);
+
+		// Based on the algo setting up the tuple order.
+		// If operator is >,<= sort in descending
+		TupleOrder tupleOrder = null;
+		if (conditionalOperator.equalsIgnoreCase("4")
+				|| conditionalOperator.equalsIgnoreCase("2")) {
+			tupleOrder = new TupleOrder(TupleOrder.Ascending);
+		}
+
+		// else if operator is < and >= sort in ascending
+		else {
+			tupleOrder = new TupleOrder(TupleOrder.Descending);
+		}
+
+		IESelfJoin ie = null;
+		try {
+			
+			ie = new IESelfJoin(Stypes, 4, Ssizes, Rtypes, 4, Rsizes, 1, 10,
+					1, 10, 10, am, am2, false, false, tupleOrder, outFilter,
+					proj_list, 2/* number of output fields*/);
+		} catch (Exception e) {
+			System.err.println("*** join error in SortMerge constructor ***");
+			status = FAIL;
+			System.err.println("" + e);
+			e.printStackTrace();
+		}
+
+		if (status != OK) {
+			// bail out
+			System.err.println("*** Error constructing SortMerge");
+			Runtime.getRuntime().exit(1);
+		}
+
+		QueryCheck qcheck1 = new QueryCheck(1);
+
+		t = null;
+		try {
+			ie.get_next();
+		} catch (JoinsException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IndexException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (InvalidTupleSizeException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (InvalidTypeException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (PageNotReadException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (TupleUtilsException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (PredEvalException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (SortException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (LowMemException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (UnknowAttrType e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (UnknownKeyTypeException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		/*try {
+			while ((t = ) != null) {
+				t.print(jtype);
+
+				qcheck1.Check(t);
+			}
+		} catch (Exception e) {
+			System.err.println("" + e);
+			e.printStackTrace();
+			status = FAIL;
+		}*/
+		if (status != OK) {
+			// bail out
+			System.err.println("*** Error in get next tuple ");
+			Runtime.getRuntime().exit(1);
+		}
+
+		qcheck1.report(1);
+		try {
+			ie.close();
+		} catch (Exception e) {
+			status = FAIL;
+			e.printStackTrace();
+		}
+		System.out.println("\n");
+		if (status != OK) {
+			// bail out
+			System.err.println("*** Error in closing ");
+			Runtime.getRuntime().exit(1);
+		}
+	}
   
   private void Disclaimer() {
     System.out.print ("\n\nAny resemblance of persons in this database to"
