@@ -1,13 +1,18 @@
 package iterator;
 
-import heap.*;
-import global.*;
-import diskmgr.*;
-import bufmgr.*;
-import index.*;
+import global.AttrType;
+import global.GlobalConst;
+import global.TupleOrder;
+import heap.Heapfile;
+import heap.InvalidTupleSizeException;
+import heap.InvalidTypeException;
+import heap.Tuple;
+import index.IndexException;
 
-import java.io.*;
+import java.io.IOException;
 import java.util.Arrays;
+
+import bufmgr.PageNotReadException;
 
 /**
  * This file contains the interface for the sort_merg joins. We name the two
@@ -143,35 +148,7 @@ public class IESelfJoin extends Iterator implements GlobalConst {
 
 		p_i1 = am1;
 		p_i2 = am2;
-		
-		if(!in2.equals(in1)){
-			System.out.println("Not equalssdfsdf");
-		}
-		
-		if(len_in2 != len_in1){
-			System.out.println("Not equals");
-		}
-		
-		if(s2_sizes != s1_sizes){
-			System.out.println("Not skjdnkjf");
-		}
-		
-		if(!am2.equals(am1)){
-			System.out.println("Not sjkdfskdfn");
-		}
-		
-		if(join_col_in2 != join_col_in1){
-			System.out.println("Nooot");
-		}
-		
-		if(sortFld2Len != sortFld1Len){
-			System.out.println("dsfsdfsdd");
-		}
-		
-		
-		
-		
-		
+
 		if (!in2_sorted) {
 			try {
 				p_i2 = new Sort(in2, (short) len_in2, s2_sizes, am2,
@@ -191,7 +168,7 @@ public class IESelfJoin extends Iterator implements GlobalConst {
 		}
 
 		
-
+		
 		OutputFilter = outFilter;
 		_order = order;
 		jc_in1 = join_col_in1;
@@ -252,21 +229,17 @@ public class IESelfJoin extends Iterator implements GlobalConst {
 
 		// Setting up permutation array
 
-		Iterator temp_p_i1 = p_i1;
-		
+		Iterator temp_p_i1 = (Iterator) p_i1.clone();
 
-		permutationArray = new int[201];
+		permutationArray = new int[5];
 		Tuple l1 = null;
 		Tuple l2 = null;
 		int permutationPosition = 0;
 		int i = 1;
-		
+
 		while ((l1 = temp_p_i1.get_next()) != null) {
-			Iterator temp_p_i2 = (Iterator)p_i2.clone();
+			Iterator temp_p_i2 = (Iterator) p_i2.clone();
 			int position = 1;
-			if(i == 3){
-				System.out.println("Hold");
-			}
 			while ((l2 = temp_p_i2.get_next()) != null
 					&& !Arrays.equals(l1.getData(), l2.getData())) {
 				position++;
@@ -276,15 +249,22 @@ public class IESelfJoin extends Iterator implements GlobalConst {
 			i++;
 		}
 
-		// SETTING up bit array
-		temp_p_i1 = p_i1;
-		bitArray = new int[201];
-		int bitArrayPOisiton = 0;
-		while ((l1 = temp_p_i1.get_next()) != null) {
-			bitArray[bitArrayPOisiton] = 0;
-			bitArrayPOisiton++;
+		for (i = 0; i < permutationPosition; i++) {
+			permutationArray[i] = i+1;
 		}
 
+		// SETTING up bit array
+		temp_p_i1 = (Iterator) p_i1.clone();
+		bitArray = new int[5];
+		int bitArrayPOisiton = 0;
+		while ((l1 = temp_p_i1.get_next()) != null) {
+			try {
+				bitArray[bitArrayPOisiton] = 0;
+				bitArrayPOisiton++;
+			} catch (Exception ex) {
+				System.out.println("Hold");
+			}
+		}
 	}
 
 	/**
@@ -331,10 +311,8 @@ public class IESelfJoin extends Iterator implements GlobalConst {
 			UnknownKeyTypeException, Exception {
 
 		AttrType[] jtype = new AttrType[2];
-		jtype[0] = new AttrType(AttrType.attrString);
-		jtype[1] = new AttrType(AttrType.attrString);
-		int comp_res;
-		Tuple _tuple1, _tuple2;
+		jtype[0] = new AttrType(AttrType.attrInteger);
+		jtype[1] = new AttrType(AttrType.attrInteger);
 		if (done)
 			return null;
 
@@ -342,43 +320,85 @@ public class IESelfJoin extends Iterator implements GlobalConst {
 		int eqOff = 1;
 
 		/* IEJoin - code */
-
+		
+		
 		int n = permutationArray.length;
-		for (int i = 1; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			int position = permutationArray[i];
 			// Find position tuple from p_i1
-			Iterator tempP_i1 = p_i1;
-			int tempPosition = position;
+			Iterator tempP_i1 = (Iterator) p_i1.clone();
 
-			while (tempPosition != 0) {
+			int tempPosition = position;
+			while (tempPosition >0) {
 				tempPosition--;
 				tuple1 = tempP_i1.get_next();
+
+				AttrType[] jtype2 = new AttrType[4];
+				jtype2[0] = new AttrType(AttrType.attrInteger);
+				jtype2[1] = new AttrType(AttrType.attrInteger);
+				jtype2[2] = new AttrType(AttrType.attrInteger);
+				jtype2[3] = new AttrType(AttrType.attrInteger);
+				
+				tuple1.print(jtype2);
+				
+				TempTuple1.tupleCopy(tuple1);
+				
 			}
+
+			
+			Tuple testTuple =  null;
+			while((testTuple = tempP_i1.get_next())!= null){
+				AttrType[] jtype3 = new AttrType[4];
+				jtype3[0] = new AttrType(AttrType.attrInteger);
+				jtype3[1] = new AttrType(AttrType.attrInteger);
+				jtype3[2] = new AttrType(AttrType.attrInteger);
+				jtype3[3] = new AttrType(AttrType.attrInteger);
+				
+				testTuple.print(jtype3);
+				
+			}
+			
+			
 			// Now tuple1 contains the position tuple
 			// tuple1 = p_i2.get_next();
-
-			for (int j = position; j < n; j++) {
+			bitArray[position-1] = 1;
+			for (int j = 0; j < n; j++) {
 				if (bitArray[j] == 1) {
 					// Find j tuple from p_i2
-					Iterator tempP_i2 = p_i2;
+					Iterator tempP_i2 = (Iterator) p_i2.clone();
 					int tempj = j;
-					while (tempj != 0) {
+					tuple2 = null;
+					while (tempj >= 0) {
 						tempj--;
 						tuple2 = tempP_i2.get_next();
+						
+						
+						AttrType[] jtype2 = new AttrType[4];
+						jtype2[0] = new AttrType(AttrType.attrInteger);
+						jtype2[1] = new AttrType(AttrType.attrInteger);
+						jtype2[2] = new AttrType(AttrType.attrInteger);
+						jtype2[3] = new AttrType(AttrType.attrInteger);
+						
+						tuple2.print(jtype2);
+						
+						TempTuple2.tupleCopy(tuple2);
 					}
 					// Now tuple2 contains the jth position record.
 					// Add to projection
+					
 
 					if (PredEval.Eval(OutputFilter, tuple1, tuple2, _in1, _in2) == true) {
+						
+						
 						Projection.Join(TempTuple1, _in1, TempTuple2, _in2,
 								Jtuple, perm_mat, nOutFlds);
+
 						Jtuple.print(jtype);
 						// return Jtuple;
 					}
 
 				}
 			}
-			bitArray[position] = 1;
 		}
 		return null;
 		/* IE Join - endcode */

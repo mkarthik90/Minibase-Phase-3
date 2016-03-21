@@ -551,8 +551,8 @@ class JoinsDriver implements GlobalConst {
 	    
 	    expr[0].type1 = new AttrType(AttrType.attrInteger);
 	    expr[0].type2 = new AttrType(AttrType.attrInteger);
-	    expr[0].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer),3); // Changed from 1 to 3 because want to compare the third one
-	    expr[0].operand2.symbol = new FldSpec (new RelSpec(RelSpec.innerRel),3);
+	    expr[0].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer),1); // Changed from 1 to 3 because want to compare the third one
+	    expr[0].operand2.symbol = new FldSpec (new RelSpec(RelSpec.innerRel),1);
 	  }
 
   public void Query1() {
@@ -1706,7 +1706,7 @@ class JoinsDriver implements GlobalConst {
 	public void Query7() {
 
 		// 1 is LE
-		String conditionalOperator = "1";
+		String conditionalOperator = "2";
 
 		System.out
 				.print("**********************Query7 strating *********************\n");
@@ -1815,10 +1815,10 @@ class JoinsDriver implements GlobalConst {
 		jtype[1] = new AttrType(AttrType.attrInteger);
 
 		// Based on the algo setting up the tuple order.
-		// If operator is >,<= sort in descending
+		// If operator is <,<= sort in descending
 		TupleOrder tupleOrder = null;
 		if (conditionalOperator.equalsIgnoreCase("4")
-				|| conditionalOperator.equalsIgnoreCase("2")) {
+				|| conditionalOperator.equalsIgnoreCase("3")) {
 			tupleOrder = new TupleOrder(TupleOrder.Ascending);
 		}
 
@@ -1846,7 +1846,6 @@ class JoinsDriver implements GlobalConst {
 			Runtime.getRuntime().exit(1);
 		}
 
-		QueryCheck qcheck1 = new QueryCheck(1);
 
 		t = null;
 		try {
@@ -1908,13 +1907,12 @@ class JoinsDriver implements GlobalConst {
 			Runtime.getRuntime().exit(1);
 		}
 
-		qcheck1.report(1);
-		try {
+		/*try {
 			ie.close();
 		} catch (Exception e) {
 			status = FAIL;
 			e.printStackTrace();
-		}
+		}*/
 		System.out.println("\n");
 		if (status != OK) {
 			// bail out
