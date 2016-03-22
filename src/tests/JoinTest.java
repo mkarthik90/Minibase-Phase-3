@@ -376,7 +376,7 @@ class JoinsDriver implements GlobalConst {
   public boolean runTests() {
     
     Disclaimer();
-    /*Query1();
+    /* Query1();
     
      Query2();
     Query3();
@@ -549,8 +549,8 @@ class JoinsDriver implements GlobalConst {
 	    	expr[0].op    = new AttrOperator(AttrOperator.aopGT);
 	    }
 	    
-	    expr[0].type1 = new AttrType(AttrType.attrInteger);
-	    expr[0].type2 = new AttrType(AttrType.attrInteger);
+	    expr[0].type1 = new AttrType(AttrType.attrSymbol);
+	    expr[0].type2 = new AttrType(AttrType.attrSymbol);
 	    expr[0].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer),1); // Changed from 1 to 3 because want to compare the third one
 	    expr[0].operand2.symbol = new FldSpec (new RelSpec(RelSpec.innerRel),1);
 	  }
@@ -1816,22 +1816,25 @@ class JoinsDriver implements GlobalConst {
 
 		// Based on the algo setting up the tuple order.
 		// If operator is <,<= sort in descending
-		TupleOrder tupleOrder = null;
+		TupleOrder tupleOrderFor1 = null;
+		TupleOrder tupleOrderFor2 = null;
 		if (conditionalOperator.equalsIgnoreCase("4")
 				|| conditionalOperator.equalsIgnoreCase("3")) {
-			tupleOrder = new TupleOrder(TupleOrder.Ascending);
+			tupleOrderFor1 = new TupleOrder(TupleOrder.Ascending);
+			tupleOrderFor2 = new TupleOrder(TupleOrder.Descending);
 		}
 
 		// else if operator is < and >= sort in ascending
 		else {
-			tupleOrder = new TupleOrder(TupleOrder.Descending);
+			tupleOrderFor1 = new TupleOrder(TupleOrder.Descending);
+			tupleOrderFor2 = new TupleOrder(TupleOrder.Descending);
 		}
 
 		IESelfJoin ie = null;
 		try {
 			
 			ie = new IESelfJoin(Stypes, 4, Ssizes, Rtypes, 4, Rsizes, 1, 10,
-					1, 10, 10, am, am2, false, false, tupleOrder, outFilter,
+					1, 10, 10, am, am2, false, false, tupleOrderFor1, tupleOrderFor2, outFilter,
 					proj_list, 2/* number of output fields*/);
 		} catch (Exception e) {
 			System.err.println("*** join error in SortMerge constructor ***");
@@ -1850,45 +1853,8 @@ class JoinsDriver implements GlobalConst {
 		t = null;
 		try {
 			ie.get_next();
-		} catch (JoinsException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (IndexException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (InvalidTupleSizeException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (InvalidTypeException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (PageNotReadException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (TupleUtilsException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (PredEvalException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (SortException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (LowMemException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (UnknowAttrType e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (UnknownKeyTypeException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (Exception e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+		} catch(Exception ex){
+			ex.printStackTrace();
 		}
 		/*try {
 			while ((t = ) != null) {
