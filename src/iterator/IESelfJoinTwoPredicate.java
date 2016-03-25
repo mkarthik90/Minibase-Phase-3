@@ -2,7 +2,6 @@ package iterator;
 
 import global.AttrType;
 import global.TupleOrder;
-import heap.Heapfile;
 import heap.InvalidTupleSizeException;
 import heap.InvalidTypeException;
 import heap.Tuple;
@@ -18,9 +17,7 @@ public class IESelfJoinTwoPredicate extends Iterator {
 	private AttrType _in1[], _in2[];
 	private int in1_len, in2_len;
 	private Iterator p_i1, p_i2;
-	private CondExpr OutputFilter[];
 	private short inner_str_sizes[];
-	private IoBuf io_buf1, io_buf2;
 	private Tuple TempTuple1, TempTuple2;
 	private Tuple tuple1, tuple2;
 	private Tuple Jtuple;
@@ -150,8 +147,6 @@ public class IESelfJoinTwoPredicate extends Iterator {
 				throw new SortException(e, "Sort failed");
 			}
 		}
-
-		OutputFilter = outFilter;
 
 		// Allocate memory for the temporary tuples
 		TempTuple1 = new Tuple();

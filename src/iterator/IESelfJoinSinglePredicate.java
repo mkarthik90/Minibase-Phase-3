@@ -25,7 +25,6 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 	private IoBuf io_buf1, io_buf2;
 	private Tuple TempTuple1, TempTuple2;
 	private Tuple tuple1, tuple2;
-	private int _n_pages;
 	private Heapfile temp_file_fd1, temp_file_fd2;
 	private Tuple Jtuple;
 	private FldSpec perm_mat[];
@@ -197,7 +196,6 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 		// Two buffer pages to store equivalence classes
 		// NOTE -- THESE PAGES ARE NOT OBTAINED FROM THE BUFFER POOL
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-		_n_pages = 1;
 
 		temp_file_fd1 = null;
 		temp_file_fd2 = null;
@@ -216,7 +214,6 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 		Iterator temp_p_i1 = (Iterator) p_i1.clone();
 		permutationArray = new int[SIZEOFTABLE];
 		int permutationPosition = 0;
-		int i = 1;
 		Tuple l1 = null;
 		Tuple l2 = null;
 		while ((l1 = temp_p_i1.get_next()) != null) {
