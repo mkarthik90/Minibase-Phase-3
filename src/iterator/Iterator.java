@@ -9,7 +9,7 @@ import java.io.*;
 /**
  *All the relational operators and access methods are iterators.
  */
-public abstract class Iterator implements Flags {
+public abstract class Iterator implements Flags, Cloneable {
   
   /**
    * a flag to indicate whether this iterator has been closed.
@@ -130,4 +130,8 @@ public abstract class Iterator implements Flags {
     return tmpId;
 
   } // end of newPage
+  
+  public Object clone() throws CloneNotSupportedException {
+		return super.clone();
+	}
 }

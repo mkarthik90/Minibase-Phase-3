@@ -7,7 +7,7 @@ import java.lang.*;
 import global.*;
 
 
-public class Tuple implements GlobalConst{
+public class Tuple implements GlobalConst, Cloneable{
 
 
  /** 
@@ -48,7 +48,8 @@ public class Tuple implements GlobalConst{
     * Creat a new tuple with length = max_size,tuple offset = 0.
     */
 
-  public  Tuple()
+
+public  Tuple()
   {
        // Creat a new tuple
        data = new byte[max_size];
@@ -534,5 +535,18 @@ public void setHdr (short numFlds,  AttrType types[], short strSizes[])
    {
       return 0;
    }
+
+public byte[] getData() {
+	return data;
+}
+
+public void setData(byte[] data) {
+	this.data = data;
+}
+
+public Object clone() throws CloneNotSupportedException {
+	return super.clone();
+}
+  
 }
 

@@ -87,8 +87,8 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 	 * @throws IndexException
 	 * @throws JoinsException
 	 */
-	public IESelfJoinSinglePredicate(AttrType in1[], int len_in1, short s1_sizes[],
-			AttrType in2[], int len_in2, short s2_sizes[],
+	public IESelfJoinSinglePredicate(AttrType in1[], int len_in1,
+			short s1_sizes[], AttrType in2[], int len_in2, short s2_sizes[],
 
 			int join_col_in1, int sortFld1Len, int join_col_in2,
 			int sortFld2Len,
@@ -153,6 +153,18 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 			} catch (Exception e) {
 				throw new SortException(e, "Sort failed");
 			}
+		}
+
+		Tuple tempTuple = null;
+		while ((tempTuple = p_i1.get_next()) != null) {
+
+			AttrType[] jtype = new AttrType[4];
+			jtype[0] = new AttrType(AttrType.attrInteger);
+			jtype[1] = new AttrType(AttrType.attrInteger);
+			jtype[2] = new AttrType(AttrType.attrInteger);
+			jtype[3] = new AttrType(AttrType.attrInteger);
+
+			tempTuple.print(jtype);
 		}
 
 		OutputFilter = outFilter;
@@ -335,12 +347,6 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 					jtype2[2] = new AttrType(AttrType.attrInteger);
 					jtype2[3] = new AttrType(AttrType.attrInteger);
 
-					/*
-					 * System.out.println("*****"); TempTuple1.print(jtype2);
-					 * tuple1.print(jtype2); TempTuple2.print(jtype2);
-					 * tuple2.print(jtype2);
-					 */
-
 					if (PredEval.Eval(OutputFilter, TempTuple1, tuple2, _in1,
 							_in2) == true) {
 
@@ -348,7 +354,7 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 								perm_mat, nOutFlds);
 
 						Jtuple.print(jtype);
-						// return Jtuple;
+
 					}
 
 				}
