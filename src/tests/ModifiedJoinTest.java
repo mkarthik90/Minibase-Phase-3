@@ -29,12 +29,12 @@ public class ModifiedJoinTest
 		
 		//Condition 1-------------------------------------------------------------------------------------------------------
 		outFilter[0].next  = null;
-		outFilter[0].op    = new AttrOperator(AttrOperator.aopGT);
+		outFilter[0].op    = new AttrOperator(AttrOperator.aopGE);
 		outFilter[0].type1 = new AttrType(AttrType.attrSymbol);
 		outFilter[0].type2 = new AttrType(AttrType.attrSymbol);
 		//outFilter[0].type2 = new AttrType(AttrType.attrInteger);
 		outFilter[0].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer),1);
-		outFilter[0].operand2.symbol = new FldSpec (new RelSpec(RelSpec.innerRel),2);
+		outFilter[0].operand2.symbol = new FldSpec (new RelSpec(RelSpec.innerRel),1);
 		//outFilter[0].operand2.integer = 324535;
 
 		//Condition 2--------------------------------------------------------------------------------------------------------
@@ -78,7 +78,6 @@ public class ModifiedJoinTest
 			System.err.println (""+e);
 		}
 		
-		
 		AttrType [] Stypes = new AttrType[4];
 		Stypes[0] = new AttrType (AttrType.attrInteger);
 		Stypes[1] = new AttrType (AttrType.attrInteger);
@@ -96,17 +95,17 @@ public class ModifiedJoinTest
 
 
 		//Changes output--------------------------------------------------------------------------------------
-		FldSpec [] proj_list = new FldSpec[4];
+		FldSpec [] proj_list = new FldSpec[2];
 		proj_list[0] = new FldSpec(new RelSpec(RelSpec.outer), 1);
 		proj_list[1] = new FldSpec(new RelSpec(RelSpec.innerRel), 1);
-		proj_list[2] = new FldSpec(new RelSpec(RelSpec.outer), 2);
-		proj_list[3] = new FldSpec(new RelSpec(RelSpec.innerRel), 2);
+		//proj_list[2] = new FldSpec(new RelSpec(RelSpec.outer), 2);
+		//proj_list[3] = new FldSpec(new RelSpec(RelSpec.outer), 2);
 		//data type of output---------------------------------------------------------------------------------
-		AttrType [] jtype = new AttrType[4];
+		AttrType [] jtype = new AttrType[2];
 		jtype[0] = new AttrType (AttrType.attrInteger);
 		jtype[1] = new AttrType (AttrType.attrInteger);
-		jtype[2] = new AttrType (AttrType.attrInteger);
-		jtype[3] = new AttrType (AttrType.attrInteger);
+		//jtype[2] = new AttrType (AttrType.attrInteger);
+		//jtype[3] = new AttrType (AttrType.attrInteger);
 		//-----------------------------------------------------------------------------------------------------
 
 		TupleOrder ascending = new TupleOrder(TupleOrder.Ascending);
@@ -114,7 +113,7 @@ public class ModifiedJoinTest
 		ModifiedNestedLoopJoin nlj = null;
 		
 		try{//==================================================================CHANGE BASED ON NUM OUTPUTS==============================
-			nlj = new ModifiedNestedLoopJoin(Stypes, 4, Ssizes, Rtypes, 4, Rsizes, 10, am, "S.in", outFilter, null, proj_list, 4, false);
+			nlj = new ModifiedNestedLoopJoin(Stypes, 4, Ssizes, Rtypes, 4, Rsizes, 10, am, "R.in", outFilter, null, proj_list, 2, false);
 		}
 		catch (Exception e) {
 			System.err.println("*** join error in SortMerge constructor ***"); 
