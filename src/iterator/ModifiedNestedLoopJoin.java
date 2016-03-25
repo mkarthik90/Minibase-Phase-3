@@ -40,6 +40,7 @@ public class ModifiedNestedLoopJoin  extends Iterator
 	private short [] Isizes; 
 	private FldSpec [] Iprojection;
 	private boolean _one;
+	private String filename;
 
 	/**constructor
 	 *Initialize the two relations which are joined, including relation type,
@@ -82,6 +83,8 @@ public class ModifiedNestedLoopJoin  extends Iterator
 		System.arraycopy(in2,0,_in2,0,in2.length);
 		in1_len = len_in1;
 		in2_len = len_in2;
+		
+		filename = relationName;
 
 		outer = am1;
 		t2_str_sizescopy =  t2_str_sizes;
@@ -129,7 +132,7 @@ public class ModifiedNestedLoopJoin  extends Iterator
 			Iprojection[1] = new FldSpec(new RelSpec(RelSpec.outer), 2);
 			Iprojection[2] = new FldSpec(new RelSpec(RelSpec.outer), 3);
 			Iprojection[3] = new FldSpec(new RelSpec(RelSpec.outer), 4);
-			inner = new FileScan("S.in", Itypes, Isizes, (short)4, (short)4, Iprojection, null);
+			inner = new FileScan(filename, Itypes, Isizes, (short)4, (short)4, Iprojection, null);
 		}
 		catch(Exception e)
 		{
@@ -190,7 +193,7 @@ public class ModifiedNestedLoopJoin  extends Iterator
 					return null;
 				}
 				inner = null;
-				inner = new FileScan("S.in", Itypes, Isizes, (short)4, (short)4, Iprojection, null);
+				inner = new FileScan(filename, Itypes, Isizes, (short)4, (short)4, Iprojection, null);
 				inner_tuple = inner.get_next();
 			}
 
@@ -285,7 +288,7 @@ public class ModifiedNestedLoopJoin  extends Iterator
 						return null;
 					}
 					inner = null;
-					inner = new FileScan("S.in", Itypes, Isizes, (short)4, (short)4, Iprojection, null);
+					inner = new FileScan(filename, Itypes, Isizes, (short)4, (short)4, Iprojection, null);
 					inner_tuple = inner.get_next();
 				}
 			}
