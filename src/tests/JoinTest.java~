@@ -2089,7 +2089,7 @@ class JoinsDriver implements GlobalConst {
 			
 			ie = new IESelfJoinTwoPredicate(Q1Types, 4, Ssizes, Q2Types, 4, Rsizes, 1/*Join condition column*/, 10,
 					2/*Join condition column*/, 10, 10, am, am2, false, false, tupleOrderFor1, tupleOrderFor2, outFilter,
-					proj_list, 4/* number of output fields*/,eqOff,300);
+					proj_list, 4/* number of output fields*/,eqOff);
 		} catch (Exception e) {
 			System.err.println("*** join error in SortMerge constructor ***");
 			status = FAIL;
