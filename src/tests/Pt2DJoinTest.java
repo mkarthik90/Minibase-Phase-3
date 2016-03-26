@@ -29,12 +29,12 @@ public class Pt2DJoinTest
 		
 		//Condition 1-------------------------------------------------------------------------------------------------------
 		outFilter[0].next  = null;
-		outFilter[0].op    = new AttrOperator(AttrOperator.aopGT);
+		outFilter[0].op    = new AttrOperator(AttrOperator.aopGE);
 		outFilter[0].type1 = new AttrType(AttrType.attrSymbol);
 		outFilter[0].type2 = new AttrType(AttrType.attrSymbol);
 		//outFilter[0].type2 = new AttrType(AttrType.attrInteger);
-		outFilter[0].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer),1);
-		outFilter[0].operand2.symbol = new FldSpec (new RelSpec(RelSpec.innerRel),1);
+		outFilter[0].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer),3);
+		outFilter[0].operand2.symbol = new FldSpec (new RelSpec(RelSpec.innerRel),3);
 		//outFilter[0].operand2.integer = 324535;
 
 		//Condition 2--------------------------------------------------------------------------------------------------------
@@ -97,8 +97,8 @@ public class Pt2DJoinTest
 
 		//Changes output--------------------------------------------------------------------------------------
 		FldSpec [] proj_list = new FldSpec[2];
-		proj_list[0] = new FldSpec(new RelSpec(RelSpec.outer), 1);
-		proj_list[1] = new FldSpec(new RelSpec(RelSpec.innerRel), 1);
+		proj_list[0] = new FldSpec(new RelSpec(RelSpec.outer), 4);
+		proj_list[1] = new FldSpec(new RelSpec(RelSpec.innerRel), 4);
 		//proj_list[2] = new FldSpec(new RelSpec(RelSpec.outer), 2);
 		//proj_list[3] = new FldSpec(new RelSpec(RelSpec.outer), 2);
 		//data type of output---------------------------------------------------------------------------------
