@@ -248,10 +248,10 @@ public class IEJoin extends Iterator{
 		}
 	}
 
-	public List<Tuple> getResult() throws JoinsException, IndexException, InvalidTupleSizeException, InvalidTypeException, PageNotReadException, TupleUtilsException, PredEvalException, SortException, LowMemException, UnknowAttrType, UnknownKeyTypeException, IOException, Exception{
+	public void getResult() throws JoinsException, IndexException, InvalidTupleSizeException, InvalidTypeException, PageNotReadException, TupleUtilsException, PredEvalException, SortException, LowMemException, UnknowAttrType, UnknownKeyTypeException, IOException, Exception{
 		Tuple l2, l2Prime, outTuple;
 		int off2, off1, k, l2Idx;
-		List<Tuple> result = new ArrayList<Tuple>();
+		//List<Tuple> result = new ArrayList<Tuple>();
 		Iterator l2PrimeIt_temp, l2It_temp = (Iterator) l2It.clone();
 
 		List<FldSpec> projMat = new ArrayList<FldSpec>();
@@ -337,7 +337,9 @@ public class IEJoin extends Iterator{
 					outTuple.setHdr((short)projAttrs.length, projAttrs, null);
 
 					Projection.Join(out1, _ATTR_TYPES, out2, _ATTR_TYPES, outTuple, permMat, permMat.length);
-					result.add(outTuple);
+					
+					outTuple.print(projAttrs);
+					//result.add(outTuple);
 				}
 
 				k++;
@@ -346,7 +348,7 @@ public class IEJoin extends Iterator{
 			while(l2PrimeIt_temp.get_next() != null){}
 		}
 
-		return result;
+		//return result;
 	}
 
 	@Override

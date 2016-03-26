@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
@@ -16,7 +15,6 @@ import global.AttrType;
 import global.GlobalConst;
 import heap.InvalidTupleSizeException;
 import heap.InvalidTypeException;
-import heap.Tuple;
 import index.IndexException;
 import iterator.IEJoin;
 import iterator.JoinsException;
@@ -57,8 +55,10 @@ class IEJoinQuery{
 
 	public void runQuery() throws JoinsException, IndexException, InvalidTupleSizeException, InvalidTypeException, PageNotReadException, PredEvalException, LowMemException, UnknowAttrType, UnknownKeyTypeException, Exception{
 		IEJoin join = new IEJoin(_r1, _r2, _r1c1, _r2c1, _r1c2, _r2c2, _op1, _op2, _projRels);
-		List<Tuple> results = join.getResult();
+		//List<Tuple> results = join.getResult();
+		join.getResult();
 
+		/*
 		try{
 			for(Tuple tuple : results){
 				tuple.print(_attrTypes);
@@ -67,6 +67,7 @@ class IEJoinQuery{
 		catch(Exception ex){
 			ex.printStackTrace();
 		}
+		*/
 	}
 }
 
