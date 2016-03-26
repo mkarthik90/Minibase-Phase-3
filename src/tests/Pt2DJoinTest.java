@@ -22,30 +22,53 @@ public class Pt2DJoinTest
 		DBBuilder db = new DBBuilder();
 
 		//Query 1-----------------------------------------------------------------------------------------------------
-		CondExpr[] outFilter = new CondExpr[2];
-		outFilter[0] = new CondExpr();
-		outFilter[1] = new CondExpr();
+		CondExpr[] testCond1 = new CondExpr[2];
+		CondExpr[] testCond2 = new CondExpr[2];
+		testCond1[0] = new CondExpr();
+		testCond1[1] = new CondExpr();
+		testCond2[0] = new CondExpr();
+		testCond2[1] = new CondExpr();
 
-		
+
+		//Test Condition 1============================================================================================================
 		//Condition 1-------------------------------------------------------------------------------------------------------
-		outFilter[0].next  = null;
-		outFilter[0].op    = new AttrOperator(AttrOperator.aopGE);
-		outFilter[0].type1 = new AttrType(AttrType.attrSymbol);
-		outFilter[0].type2 = new AttrType(AttrType.attrSymbol);
-		//outFilter[0].type2 = new AttrType(AttrType.attrInteger);
-		outFilter[0].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer),3);
-		outFilter[0].operand2.symbol = new FldSpec (new RelSpec(RelSpec.innerRel),3);
-		//outFilter[0].operand2.integer = 324535;
+		testCond1[0].next  = null;
+		testCond1[0].op    = new AttrOperator(AttrOperator.aopLE);
+		testCond1[0].type1 = new AttrType(AttrType.attrSymbol);
+		testCond1[0].type2 = new AttrType(AttrType.attrSymbol);
+		//testCond1[0].type2 = new AttrType(AttrType.attrInteger);
+		testCond1[0].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer), 1);
+		testCond1[0].operand2.symbol = new FldSpec (new RelSpec(RelSpec.innerRel), 1);
+		//testCond1[0].operand2.integer = 324535;
 
 		//Condition 2--------------------------------------------------------------------------------------------------------
-		outFilter[1].op    = new AttrOperator(AttrOperator.aopGT);
-		outFilter[1].next  = null;
-		outFilter[1].type1 = new AttrType(AttrType.attrSymbol);
-		outFilter[1].type2 = new AttrType(AttrType.attrSymbol);
-		outFilter[1].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer),2);
-		outFilter[1].operand2.symbol = new FldSpec (new RelSpec(RelSpec.innerRel),2);
-//		outFilter[1] = null;
+//		testCond1[1].op    = new AttrOperator(AttrOperator.aopGT);
+//		testCond1[1].next  = null;
+//		testCond1[1].type1 = new AttrType(AttrType.attrSymbol);
+//		testCond1[1].type2 = new AttrType(AttrType.attrSymbol);
+//		testCond1[1].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer), 2);
+//		testCond1[1].operand2.symbol = new FldSpec (new RelSpec(RelSpec.innerRel), 2);
+		testCond1[1] = null;
 		//----------------------------------------------------------------------------------------------------------------
+
+		//Test Condition 2============================================================================================================
+		//Condition 1-------------------------------------------------------------------------------------------------------
+		testCond2[0].next  = null;
+		testCond2[0].op    = new AttrOperator(AttrOperator.aopLT);
+		testCond2[0].type1 = new AttrType(AttrType.attrSymbol);
+		testCond2[0].type2 = new AttrType(AttrType.attrSymbol);
+		testCond2[0].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer), 4);
+		testCond2[0].operand2.symbol = new FldSpec (new RelSpec(RelSpec.innerRel), 4);
+
+		//Condition 2--------------------------------------------------------------------------------------------------------
+		testCond2[1].op    = new AttrOperator(AttrOperator.aopGE);
+		testCond2[1].next  = null;
+		testCond2[1].type1 = new AttrType(AttrType.attrSymbol);
+		testCond2[1].type2 = new AttrType(AttrType.attrSymbol);
+		testCond2[1].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer), 3);
+		testCond2[1].operand2.symbol = new FldSpec (new RelSpec(RelSpec.innerRel), 3);
+		//----------------------------------------------------------------------------------------------------------------
+		//============================================================================================================================
 
 		Tuple t = new Tuple();
 
@@ -63,20 +86,6 @@ public class Pt2DJoinTest
 		Rprojection[1] = new FldSpec(new RelSpec(RelSpec.outer), 2);
 		Rprojection[2] = new FldSpec(new RelSpec(RelSpec.outer), 3);
 		Rprojection[3] = new FldSpec(new RelSpec(RelSpec.outer), 4);
-
-		CondExpr [] selects = new CondExpr [1];
-		selects = null;
-
-
-		FileScan am = null;
-		try {
-			am  = new FileScan("R.in", Rtypes, Rsizes, 
-					(short)4, (short)4,
-					Rprojection, null);
-		}
-		catch (Exception e) {
-			System.err.println (""+e);
-		}
 		
 		
 		AttrType [] Stypes = new AttrType[4];
@@ -108,13 +117,11 @@ public class Pt2DJoinTest
 		//jtype[2] = new AttrType (AttrType.attrInteger);
 		//jtype[3] = new AttrType (AttrType.attrInteger);
 		//-----------------------------------------------------------------------------------------------------
-
-		TupleOrder ascending = new TupleOrder(TupleOrder.Ascending);
 		
 		Pt2DIEJoin nlj = null;
 		
-		try{//==================================================================CHANGE BASED ON NUM OUTPUTS==============================
-			nlj = new Pt2DIEJoin("R", Rprojection, Rtypes, 4, "S", Sprojection, Stypes, 4, proj_list, jtype, 2, outFilter, 10);
+		try{//==================================================================CHANGE BASED ON COND==============================
+			nlj = new Pt2DIEJoin("R", Rprojection, Rtypes, 4, "S", Sprojection, Stypes, 4, proj_list, jtype, 2, testCond2, 10);
 		}
 		catch (Exception e) {
 			System.err.println("*** join error in SortMerge constructor ***"); 
@@ -124,7 +131,7 @@ public class Pt2DJoinTest
 
 
 		t = null;
-
+		
 		try {
 			while ((t = nlj.get_next()) != null) {
 				t.print(jtype);
@@ -135,13 +142,7 @@ public class Pt2DJoinTest
 			System.err.println (""+e);
 			e.printStackTrace();
 		}
-
-		try {
-			//nlj.close();
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
-		System.out.println ("\nfin\n"); 
+		
+		System.out.println ("\nfin"); 
 	}
 }
