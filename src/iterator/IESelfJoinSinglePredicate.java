@@ -25,6 +25,7 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 	private IoBuf io_buf1, io_buf2;
 	private Tuple TempTuple1, TempTuple2;
 	private Tuple tuple1, tuple2;
+	private int _n_pages;
 	private Heapfile temp_file_fd1, temp_file_fd2;
 	private Tuple Jtuple;
 	private FldSpec perm_mat[];
@@ -32,7 +33,8 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 	private int[] permutationArray;
 	private int[] bitArray;
 	// TODO
-	private final int SIZEOFTABLE = 5;
+	private int SIZEOFTABLE = 0;
+	private int totalNumberOfResult = 0;
 
 	/**
 	 * constructor,initialization
@@ -86,8 +88,8 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 	 * @throws IndexException
 	 * @throws JoinsException
 	 */
-	public IESelfJoinSinglePredicate(AttrType in1[], int len_in1,
-			short s1_sizes[], AttrType in2[], int len_in2, short s2_sizes[],
+	public IESelfJoinSinglePredicate(AttrType in1[], int len_in1, short s1_sizes[],
+			AttrType in2[], int len_in2, short s2_sizes[],
 
 			int join_col_in1, int sortFld1Len, int join_col_in2,
 			int sortFld2Len,
@@ -97,12 +99,13 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 			boolean in1_sorted, boolean in2_sorted, TupleOrder order,
 			TupleOrder order2,
 
-			CondExpr outFilter[], FldSpec proj_list[], int n_out_flds)
+			CondExpr outFilter[], FldSpec proj_list[], int n_out_flds, int sizeOfTable)
 			throws JoinsException, IndexException, InvalidTupleSizeException,
 			InvalidTypeException, PageNotReadException, PredEvalException,
 			LowMemException, UnknowAttrType, UnknownKeyTypeException, Exception
 
 	{
+		SIZEOFTABLE = sizeOfTable;
 		_in1 = new AttrType[in1.length];
 		_in2 = new AttrType[in2.length];
 		System.arraycopy(in1, 0, _in1, 0, in1.length);
@@ -154,18 +157,6 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 			}
 		}
 
-		Tuple tempTuple = null;
-		while ((tempTuple = p_i1.get_next()) != null) {
-
-			AttrType[] jtype = new AttrType[4];
-			jtype[0] = new AttrType(AttrType.attrInteger);
-			jtype[1] = new AttrType(AttrType.attrInteger);
-			jtype[2] = new AttrType(AttrType.attrInteger);
-			jtype[3] = new AttrType(AttrType.attrInteger);
-
-			tempTuple.print(jtype);
-		}
-
 		OutputFilter = outFilter;
 
 		// open io_bufs
@@ -196,6 +187,7 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 		// Two buffer pages to store equivalence classes
 		// NOTE -- THESE PAGES ARE NOT OBTAINED FROM THE BUFFER POOL
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		_n_pages = 1;
 
 		temp_file_fd1 = null;
 		temp_file_fd2 = null;
@@ -214,6 +206,7 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 		Iterator temp_p_i1 = (Iterator) p_i1.clone();
 		permutationArray = new int[SIZEOFTABLE];
 		int permutationPosition = 0;
+		int i = 1;
 		Tuple l1 = null;
 		Tuple l2 = null;
 		while ((l1 = temp_p_i1.get_next()) != null) {
@@ -344,14 +337,21 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 					jtype2[2] = new AttrType(AttrType.attrInteger);
 					jtype2[3] = new AttrType(AttrType.attrInteger);
 
+					/*
+					 * System.out.println("*****"); TempTuple1.print(jtype2);
+					 * tuple1.print(jtype2); TempTuple2.print(jtype2);
+					 * tuple2.print(jtype2);
+					 */
+
 					if (PredEval.Eval(OutputFilter, TempTuple1, tuple2, _in1,
 							_in2) == true) {
 
 						Projection.Join(tuple1, _in1, tuple2, _in2, Jtuple,
 								perm_mat, nOutFlds);
 
+						totalNumberOfResult++;
 						Jtuple.print(jtype);
-
+						// return Jtuple;
 					}
 
 				}
@@ -361,6 +361,7 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 			while (tempP_i1.get_next() != null)
 				;
 		}
+		System.out.println("Tottal "+totalNumberOfResult);
 		return null;
 		/* IE Join - endcode */
 	}
