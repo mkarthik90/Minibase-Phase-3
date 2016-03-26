@@ -1,15 +1,15 @@
 package tests;
-import iterator.*;
-import heap.*;
-import global.*;
-import index.*;
-import java.io.*;
-import java.util.*;
-import java.lang.*;
-import diskmgr.*;
-import bufmgr.*;
-import btree.*; 
-import catalog.*;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+
+import global.AttrType;
+import global.GlobalConst;
+import global.SystemDefs;
+import heap.Heapfile;
+import heap.Tuple;
 
 //Define the Sailor schema
 class TableEntry {
@@ -27,16 +27,15 @@ class TableEntry {
 }
 
 public class DBBuilder implements GlobalConst{
-	private ArrayList<TableEntry> RTable;
-	private ArrayList<TableEntry> QTable;
-	private ArrayList<TableEntry> STable;
-
-	public static void main(String args[])
-	{
-		DBBuilder db = new DBBuilder();
-	}
+	private static ArrayList<TableEntry> RTable;
+	private static ArrayList<TableEntry> QTable;
+	private static ArrayList<TableEntry> STable;
 	
 	public DBBuilder(){
+		DBBuilder.build();
+	}
+
+	public static void build(){
 		RTable = new ArrayList<TableEntry>();
 		QTable = new ArrayList<TableEntry>();
 		STable = new ArrayList<TableEntry>();
@@ -137,7 +136,7 @@ public class DBBuilder implements GlobalConst{
 		catch (IOException e) {
 			System.err.println (""+e);
 		}
-		SystemDefs sysdef = new SystemDefs( dbpath, 1000, NUMBUF, "Clock" );
+		new SystemDefs( dbpath, 1000, NUMBUF, "Clock" );
 
 		// creating the table relation
 		AttrType [] Stypes = new AttrType[4];
@@ -161,8 +160,6 @@ public class DBBuilder implements GlobalConst{
 
 		int size = t.size();
 
-		// inserting the tuple into file "R"===============================
-		RID             rid;
 		Heapfile        f = null;
 		try {
 			f = new Heapfile("R.in");
@@ -194,7 +191,7 @@ public class DBBuilder implements GlobalConst{
 			}
 
 			try {
-				rid = f.insertRecord(t.returnTupleByteArray());
+				f.insertRecord(t.returnTupleByteArray());
 			}
 			catch (Exception e) {
 				System.err.println("*** error in Heapfile.insertRecord() ***");
@@ -272,7 +269,7 @@ public class DBBuilder implements GlobalConst{
 			}
 
 			try {
-				rid = f.insertRecord(t.returnTupleByteArray());
+				f.insertRecord(t.returnTupleByteArray());
 			}
 			catch (Exception e) {
 				System.err.println("*** error in Heapfile.insertRecord() ***");

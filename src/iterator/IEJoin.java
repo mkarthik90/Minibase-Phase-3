@@ -3,15 +3,14 @@ package iterator;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import bufmgr.PageNotReadException;
 import global.AttrOperator;
 import global.AttrType;
 import global.TupleOrder;
-import heap.FieldNumberOutOfBoundException;
 import heap.InvalidTupleSizeException;
 import heap.InvalidTypeException;
 import heap.Tuple;
@@ -27,31 +26,33 @@ public class IEJoin extends Iterator{
 	private int[] l1Offset, l2Offset, bitArray, permArr, primePermArr;
 	private int eqOff, m, n;
 	private Iterator l2It, l2PrimeIt;
+	private Map<String, Set<Integer>> _projRels;
 
 	/*
 	 * r1.r1c1 op1 r2.r2c1
 	 * r1.r1c2 op2 r2.r2c2
 	 */
-	public IEJoin(String r1, String r2, int r1c1, int r2c1, int r1c2, int r2c2, int op1, int op2) throws JoinsException, IndexException, InvalidTupleSizeException, InvalidTypeException, PageNotReadException, PredEvalException, LowMemException, UnknowAttrType, UnknownKeyTypeException, Exception{
+	public IEJoin(String r1, String r2, int r1c1, int r2c1, int r1c2, int r2c2, int op1, int op2, Map<String, Set<Integer>> projRels) throws JoinsException, IndexException, InvalidTupleSizeException, InvalidTypeException, PageNotReadException, PredEvalException, LowMemException, UnknowAttrType, UnknownKeyTypeException, Exception{
 		n = 0;
 		m = 0;
-		
+		_projRels = projRels;
+
 		Iterator l1It = null, l1PrimeIt = null;
 		FileScan l1Scan = new FileScan(r1 + ".in", _ATTR_TYPES, null, (short)4, (short)4, _BASIC_PROJECTION, null),
 				l1PrimeScan = new FileScan(r2 + ".in", _ATTR_TYPES, null, (short)4, (short)4, _BASIC_PROJECTION, null),
 				l2Scan = new FileScan(r1 + ".in", _ATTR_TYPES, null, (short)4, (short)4, _BASIC_PROJECTION, null),
 				l2PrimeScan = new FileScan(r2 + ".in", _ATTR_TYPES, null, (short)4, (short)4, _BASIC_PROJECTION, null);
-		
+
 		int l1TupleOrder = 0, l2TupleOrder = 0;
-		
+
 		while(l1Scan.get_next() != null){
 			m++;
 		}
-		
+
 		while(l1PrimeScan.get_next() != null){
 			n++;
 		}
-		
+
 		l1Scan = new FileScan(r1 + ".in", _ATTR_TYPES, null, (short)4, (short)4, _BASIC_PROJECTION, null);
 		l1PrimeScan = new FileScan(r2 + ".in", _ATTR_TYPES, null, (short)4, (short)4, _BASIC_PROJECTION, null);
 
@@ -82,9 +83,9 @@ public class IEJoin extends Iterator{
 			l2PrimeIt = new Sort(_ATTR_TYPES, (short)4, null, l2PrimeScan, r2c2, new TupleOrder(TupleOrder.Descending), 4, 10);
 			l2TupleOrder = TupleOrder.Descending;
 		}
-/*
+		/*
 		Tuple l1, l1Prime;
-		
+
 		System.out.println("L1:\n");
 
 		while((l1 = l1It.get_next()) != null){
@@ -95,9 +96,9 @@ public class IEJoin extends Iterator{
 		while((l1Prime = l1PrimeIt.get_next()) != null){
 			l1Prime.print(_ATTR_TYPES);
 		}
-		
+
 		Tuple l2, l2Prime;
-		
+
 		System.out.println("L2:\n");
 		while((l2 = l2It.get_next()) != null){
 			l2.print(_ATTR_TYPES);
@@ -107,20 +108,20 @@ public class IEJoin extends Iterator{
 		while((l2Prime = l2PrimeIt.get_next()) != null){
 			l2Prime.print(_ATTR_TYPES);
 		}
-		*/
+		 */
 		//line 7
 		permArr = new int[m];
 		Tuple l2, l1;
-		
+
 		Iterator l2It_temp = (Iterator) l2It.clone(), l1It_temp;
 
 		for(int i = 0; i < m; i++){
 			l2 = l2It_temp.get_next();
 			l1It_temp = (Iterator) l1It.clone();
-						
+
 			for(int j = 0; j < m; j++){
 				l1 = l1It_temp.get_next();
-				
+
 				if(Arrays.equals(l2.getTupleByteArray(), l1.getTupleByteArray())){
 					permArr[i] = j;
 					while (l1It_temp.get_next() != null) {}
@@ -128,9 +129,9 @@ public class IEJoin extends Iterator{
 				}
 			}
 		}
-		
+
 		while (l2It_temp.get_next() != null) {}
-		
+
 		//line 8
 		primePermArr = new int[n];
 		Tuple l2Prime, l1Prime;
@@ -140,10 +141,10 @@ public class IEJoin extends Iterator{
 		for(int i = 0; i < n; i++){
 			l2Prime = l2PrimeIt_temp.get_next();
 			l1PrimeIt_temp = (Iterator) l1PrimeIt.clone();
-						
+
 			for(int j = 0; j < n; j++){
 				l1Prime = l1PrimeIt_temp.get_next();
-				
+
 				if(Arrays.equals(l2Prime.getTupleByteArray(), l1Prime.getTupleByteArray())){
 					primePermArr[i] = j;
 					while (l1PrimeIt_temp.get_next() != null) {}
@@ -151,28 +152,28 @@ public class IEJoin extends Iterator{
 				}
 			}
 		}
-	
+
 		while (l2PrimeIt_temp.get_next() != null) {}
 
 		//line 9
-		
+
 		l1Offset = new int[Math.min(m, n)];
 		l2Offset = new int[Math.min(m, n)];
 		boolean found;
-		
+
 		int l1PrimeVal, l1Val;
 		l1It_temp = (Iterator)l1It.clone();
-		
+
 		for(int i = 0; i < Math.min(m, n); i++){
 			found = false;
 			l1 = l1It_temp.get_next();
 			l1Val = l1.getIntFld(r1c1);
-			
+
 			l1PrimeIt_temp = (Iterator)l1PrimeIt.clone();
-			
+
 			for(int j = 0; j < n; j ++){
 				l1PrimeVal = l1PrimeIt_temp.get_next().getIntFld(r2c1);
-				
+
 				if(l1TupleOrder == TupleOrder.Ascending){
 					if(l1Val <= l1PrimeVal){
 						l1Offset[i] = j;
@@ -185,7 +186,7 @@ public class IEJoin extends Iterator{
 						found = true;
 					}
 				}
-				
+
 				if(found){
 					while(l1PrimeIt_temp.get_next() != null){}
 					break;
@@ -195,21 +196,21 @@ public class IEJoin extends Iterator{
 				}
 			}
 		}
-		
+
 		//line 10
 		int l2PrimeVal, l2Val;
 		l2It_temp = (Iterator)l2It.clone();
-		
+
 		for(int i = 0; i < Math.min(m, n); i++){
 			found = false;
 			l2 = l2It_temp.get_next();
 			l2Val = l2.getIntFld(r1c2);
-			
+
 			l2PrimeIt_temp = (Iterator)l2PrimeIt.clone();
-			
+
 			for(int j = 0; j < n; j ++){
 				l2PrimeVal = l2PrimeIt_temp.get_next().getIntFld(r2c2);
-				
+
 				if(l2TupleOrder == TupleOrder.Ascending){
 					if(l2Val <= l2PrimeVal){
 						l2Offset[i] = j;
@@ -222,7 +223,7 @@ public class IEJoin extends Iterator{
 						found = true;
 					}
 				}
-				
+
 				if(found){
 					while(l2PrimeIt_temp.get_next() != null){}
 					break;
@@ -235,9 +236,9 @@ public class IEJoin extends Iterator{
 
 		//line 11: initialize bit array B' (|B'| = n) and set all bits to 0
 		bitArray = new int[n];
-		
+
 		//line 12
-		
+
 		//line 13-14
 		if((op1 == AttrOperator.aopLE || op1 == AttrOperator.aopGE) && (op2 == AttrOperator.aopLE || op2 == AttrOperator.aopGE)){
 			eqOff = 0;
@@ -246,83 +247,119 @@ public class IEJoin extends Iterator{
 			eqOff = 1;
 		}
 	}
-	
-	public List<Tuple[]> getResult() throws JoinsException, IndexException, InvalidTupleSizeException, InvalidTypeException, PageNotReadException, TupleUtilsException, PredEvalException, SortException, LowMemException, UnknowAttrType, UnknownKeyTypeException, IOException, Exception{
-		Tuple l2, l2Prime;
+
+	public List<Tuple> getResult() throws JoinsException, IndexException, InvalidTupleSizeException, InvalidTypeException, PageNotReadException, TupleUtilsException, PredEvalException, SortException, LowMemException, UnknowAttrType, UnknownKeyTypeException, IOException, Exception{
+		Tuple l2, l2Prime, outTuple;
 		int off2, off1, k, l2Idx;
-		List<Tuple[]> result = new ArrayList<Tuple[]>();
+		List<Tuple> result = new ArrayList<Tuple>();
 		Iterator l2PrimeIt_temp, l2It_temp = (Iterator) l2It.clone();
+
+		List<FldSpec> projMat = new ArrayList<FldSpec>();
+		FldSpec[] permMat;
+		boolean outer = true;
+		RelSpec spec;
+		AttrType[] projAttrs; 
+
+		for(String key : _projRels.keySet()){
+			for(Integer col : _projRels.get(key)){
+				if(outer){
+					spec = new RelSpec(RelSpec.outer);
+				}
+				else{
+					spec = new RelSpec(RelSpec.innerRel);
+				}
+
+				projMat.add(new FldSpec(spec, col));
+			}
+
+			outer = false;
+		}
 		
+		projAttrs = new AttrType[projMat.size()];
+		
+		for(int i = 0; i < projAttrs.length; i++){
+			projAttrs[i] = new AttrType (AttrType.attrInteger);
+		}	
+
+		permMat = new FldSpec[projMat.size()];
+		projMat.toArray(permMat);
+
 		for(int i = 0; i < m; i++){
 			l2 = l2It_temp.get_next();
 
 			off2 = l2Offset[i];
-			
-			
+
+
 			for(int j = 0; j < off2; j++){
 				/*if(j >= primePermArr.length){
 					break;
 				}
-				*/
-				
+				 */
+
 				int idx = primePermArr[j];
-				
+
 				if(idx < bitArray.length){
 					bitArray[idx] = 1;
 				}
 			}
-			
+
 			off1 = l1Offset[permArr[i]];
 			k = eqOff + off1;
 			l2Idx = 0;
 			l2PrimeIt_temp = (Iterator) l2PrimeIt.clone();
-			
+
 			while(l2Idx < k){
 				l2PrimeIt_temp.get_next();
 				l2Idx++;
 			}
-			
+
 			while(k < n){
 				l2Prime = l2PrimeIt_temp.get_next();
 
-				
 				if(bitArray[k] == 1){
+					/*
 					System.out.println("ADDING L2 & L2 PRIME");
 					System.out.println("L2: ");
 					l2.print(_ATTR_TYPES);
 					System.out.println("L2 PRIME:");
 					l2Prime.print(_ATTR_TYPES);
-					
+					*/
+
 					Tuple out1 = new Tuple(), out2 = new Tuple();
 					out1.setHdr((short)4, _ATTR_TYPES, null);
 					out2.setHdr((short)4, _ATTR_TYPES, null);
 
 					out1.tupleCopy(l2);
 					out2.tupleCopy(l2Prime);
+
+					outTuple = new Tuple();
 					
-					result.add(new Tuple[]{out1, out2});
+					outTuple.setHdr((short)projAttrs.length, projAttrs, null);
+
+					Projection.Join(out1, _ATTR_TYPES, out2, _ATTR_TYPES, outTuple, permMat, permMat.length);
+					result.add(outTuple);
 				}
+
 				k++;
 			}
-			
+
 			while(l2PrimeIt_temp.get_next() != null){}
 		}
-		
+
 		return result;
 	}
 
 	@Override
 	public Tuple get_next() throws IOException, JoinsException, IndexException, InvalidTupleSizeException,
-			InvalidTypeException, PageNotReadException, TupleUtilsException, PredEvalException, SortException,
-			LowMemException, UnknowAttrType, UnknownKeyTypeException, Exception {
-		// TODO Auto-generated method stub
-		
+	InvalidTypeException, PageNotReadException, TupleUtilsException, PredEvalException, SortException,
+	LowMemException, UnknowAttrType, UnknownKeyTypeException, Exception {
+
 		return null;
 	}
 
 	@Override
 	public void close() throws IOException, JoinsException, SortException, IndexException {
 		// TODO Auto-generated method stub
-		
+
 	}
 }
