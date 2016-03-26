@@ -48,7 +48,7 @@ public class Pt2DIEJoin {
 	private int eqoff;
 	
 	private int innerindex, outerindex;
-	private boolean firsttime, finished, continueing;
+	private boolean finished, continueing;
 	
 	/*
 	 * r1.r1c1 op1 r2.r2c1
@@ -60,7 +60,6 @@ public class Pt2DIEJoin {
 	{
 		innerindex = 0;
 		outerindex = 0;
-		firsttime = true;
 		finished = false;
 		continueing = false;
 
@@ -499,26 +498,6 @@ public class Pt2DIEJoin {
 		{
 			eqoff = 1;
 		}
-
-		
-		//loop?
-/*
-
-		for(int i = 1; i < 5; i++){
-			off2 = o2[i];
-
-			for(int j = o2[i-1]; j < o2[i-1]; j++){
-				bitArray[permArr2[j]] = 1;
-			}
-
-			off1 = o1[permArr1[i]];
-
-			for(int j = off1 + eqOff; j < 5; j++){
-				if(bitArray[j] == 1){
-
-				}
-			}
-		}*/
 	}
 	
 	public Tuple get_next()
@@ -526,10 +505,6 @@ public class Pt2DIEJoin {
 		if(finished)
 		{
 			return null;
-		}
-		if(firsttime)
-		{
-			innerindex += eqoff;
 		}
 		for(;outerindex < outsize + insize; outerindex++)
 		{
@@ -541,20 +516,28 @@ public class Pt2DIEJoin {
 			else
 			{
 				//otherwise update innerindex
-				innerindex = permutationArray[outerindex] + eqoff;
-				bitArr[outerindex] = 1;
-				bloomArr[outerindex/comprsize] = 1;
+				//line 12
+				innerindex = backPArr[outerindex];
+				//line 13
+				//set the bit and bloom array
+				bitArr[innerindex] = 1;
+				bloomArr[innerindex/comprsize] = 1;
+				//line 14
+				innerindex += eqoff;
 			}
 			for(;innerindex < outsize + insize; innerindex++)
 			{
+				//first check the bloom array for large scale iteration
 				if(bloomArr[innerindex / comprsize] == 0)
 				{
 					innerindex = ((innerindex / comprsize) +1 ) * comprsize;
 				}
 				else
 				{
-					if(bitArr[innerindex] == 1 && !tableArr1[outerindex] && tableArr1[outerindex] != tableArr2[innerindex])
+					//else check fine grain
+					if(bitArr[innerindex] == 1 && !tableArr1[outerindex] && tableArr2[innerindex])
 					{
+						//on success
 						try{
 							//get tuple L1[i],L2[j]
 							FileScan scan1 = new FileScan("tempsort1.in", r1t, null, (short)4, (short)4, r1f, null);
@@ -577,6 +560,7 @@ public class Pt2DIEJoin {
 							Projection.Join(t1, r1t, t2, r2t, Jtuple, pf, projsize);
 							
 							continueing = true;
+							//increment so that we do not loop forever
 							innerindex++;
 							return Jtuple;
 						}
@@ -590,152 +574,5 @@ public class Pt2DIEJoin {
 		}
 		finished = true;
 		return null;
-	}
-
-	private class TuplePair{
-		private Tuple _t1, _t2;
-
-		public TuplePair(Tuple t1, Tuple t2){
-			_t1 = t1;
-			_t2 = t2;
-		}
-	}
-
-	private class IEJoinRelation{
-		public String name;
-		public int col;
-		public RelSpec relSpec;
-
-		public IEJoinRelation(String _name, int _relSpec, int _col){
-			name = _name.toUpperCase();
-			relSpec = new RelSpec(_relSpec);
-			col = _col;
-		}
-
-		@Override
-		public String toString(){
-			return name + "_" + col;
-		}
-
-		@Override
-		public boolean equals(Object o){
-			if (o == null || !IEJoinRelation.class.isAssignableFrom(o.getClass())) {
-				return false;
-			}
-
-			IEJoinRelation other = (IEJoinRelation) o;
-
-			return this.name.equals(other.name) && this.col == other.col;
-		}
-	}
-
-	private class IEJoinQuery{
-		private final AttrType[] _ATTR_TYPES = {new AttrType (AttrType.attrInteger), new AttrType (AttrType.attrInteger),
-				new AttrType (AttrType.attrInteger), new AttrType (AttrType.attrInteger)};
-
-		private List<CondExpr> _filter;
-		private List<IEJoinRelation> _relations;
-
-		public IEJoinQuery(){
-			_filter = new ArrayList<CondExpr>();
-			_relations = new ArrayList<IEJoinRelation>();
-		}
-
-		private void _addToRelations(IEJoinRelation rel){
-			if(!_relations.contains(rel)){
-				_relations.add(rel);
-			}
-		}
-
-		public void runQuery(){
-			FileScan scan1 = null, scan2 = null;
-			Map<String, FileScan> scans = new HashMap<String, FileScan>();
-			List<FldSpec> projection1 = new ArrayList<FldSpec>(), projection2 = new ArrayList<FldSpec>();
-
-			IEJoinRelation rel1 = _relations.get(0), rel2 = _relations.get(1);
-
-			for(int i = 1; i < 5; i++){
-				projection1.add(new FldSpec(new RelSpec(RelSpec.outer), i));
-				projection2.add(new FldSpec(new RelSpec(RelSpec.outer), i));
-			}
-
-			try {
-				scan1 = new FileScan(rel1.name + ".in", _ATTR_TYPES, null, 
-						(short)4, (short)4, projection1.toArray(new FldSpec[projection1.size()]), null);
-
-				Tuple tuple;
-
-				while((tuple = scan1.get_next()) != null){
-				}
-
-				scan2 = new FileScan(rel2.name + ".in", _ATTR_TYPES, null, 
-						(short)4, (short)4, projection2.toArray(new FldSpec[projection2.size()]), null);
-			} catch (FileScanException | TupleUtilsException | InvalidRelation | IOException | JoinsException | InvalidTupleSizeException | InvalidTypeException | PageNotReadException | PredEvalException | UnknowAttrType | FieldNumberOutOfBoundException | WrongPermat e) {
-				e.printStackTrace();
-				System.exit(1);
-			}
-
-			FldSpec [] proj_list = new FldSpec[4];
-			proj_list[0] = new FldSpec(rel1.relSpec, 1);
-			proj_list[1] = new FldSpec(rel2.relSpec, 1);
-			proj_list[2] = new FldSpec(rel1.relSpec, 1);
-			proj_list[3] = new FldSpec(rel1.relSpec, 1);
-
-
-			AttrType [] jtype = new AttrType[4];
-			jtype[0] = new AttrType (AttrType.attrInteger);
-			jtype[1] = new AttrType (AttrType.attrInteger);
-			jtype[2] = new AttrType (AttrType.attrInteger);
-			jtype[3] = new AttrType (AttrType.attrInteger);
-
-			TupleOrder ascending = new TupleOrder(TupleOrder.Ascending);
-			SortMerge sm = null;
-
-			try {
-				sm = new SortMerge(_ATTR_TYPES, 4, null,
-						_ATTR_TYPES, 4, null,
-						rel1.col, 4, 
-						rel2.col, 4, 
-						10,
-						scan1, scan2, 
-						false, false, ascending,
-						getFilter(), proj_list, 4);
-
-				Tuple t = null;
-
-				while((t = sm.get_next()) != null){
-					System.out.println("TUPLES!!!");
-					t.print(jtype);
-				}
-			}
-			catch (Exception e) {
-				System.err.println("*** join error in SortMerge constructor ***"); 
-				System.err.println (""+e);
-				e.printStackTrace();
-			}
-		}
-
-		public void addExpression(IEJoinRelation rel1, IEJoinRelation rel2, AttrOperator op, String conj){
-			_addToRelations(rel1);
-			_addToRelations(rel2);
-
-			CondExpr expr = new CondExpr();
-
-			expr.op    = op;
-			expr.type1 = new AttrType(AttrType.attrSymbol);
-			expr.type2 = new AttrType(AttrType.attrSymbol);
-			expr.operand1.symbol = new FldSpec (rel1.relSpec, rel1.col);
-			expr.operand2.symbol = new FldSpec (rel2.relSpec, rel2.col);
-
-			_filter.add(expr);
-		}
-
-		public List<IEJoinRelation> getRelations(){
-			return _relations;
-		}
-
-		public CondExpr[] getFilter(){
-			return _filter.toArray(new CondExpr[_filter.size()]);
-		}
 	}
 }
