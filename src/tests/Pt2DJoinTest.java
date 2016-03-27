@@ -16,11 +16,12 @@ import catalog.*;
 //not designed to handle printing from table not involved in join
 public class Pt2DJoinTest 
 {
-
 	public static void main(String args[])
 	{
-		DBBuilder db = new DBBuilder();
-
+		HelpBundle hb = new HelpBundle();
+        hb.parseQuery("queries/query_2d.txt");
+		DBBuilder.build(hb.get_table1(), hb.get_table2());
+/*
 		//Query 1-----------------------------------------------------------------------------------------------------
 		CondExpr[] testCond1 = new CondExpr[2];
 		CondExpr[] testCond2 = new CondExpr[2];
@@ -54,22 +55,22 @@ public class Pt2DJoinTest
 		//Test Condition 2============================================================================================================
 		//Condition 1-------------------------------------------------------------------------------------------------------
 		testCond2[0].next  = null;
-		testCond2[0].op    = new AttrOperator(AttrOperator.aopLT);
+		testCond2[0].op    = new AttrOperator(AttrOperator.aopGT);
 		testCond2[0].type1 = new AttrType(AttrType.attrSymbol);
 		testCond2[0].type2 = new AttrType(AttrType.attrSymbol);
-		testCond2[0].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer), 4);
-		testCond2[0].operand2.symbol = new FldSpec (new RelSpec(RelSpec.innerRel), 4);
+		testCond2[0].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer), 1);
+		testCond2[0].operand2.symbol = new FldSpec (new RelSpec(RelSpec.innerRel), 1);
 
 		//Condition 2--------------------------------------------------------------------------------------------------------
-		testCond2[1].op    = new AttrOperator(AttrOperator.aopGE);
+		testCond2[1].op    = new AttrOperator(AttrOperator.aopGT);
 		testCond2[1].next  = null;
 		testCond2[1].type1 = new AttrType(AttrType.attrSymbol);
 		testCond2[1].type2 = new AttrType(AttrType.attrSymbol);
-		testCond2[1].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer), 3);
-		testCond2[1].operand2.symbol = new FldSpec (new RelSpec(RelSpec.innerRel), 3);
+		testCond2[1].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer), 2);
+		testCond2[1].operand2.symbol = new FldSpec (new RelSpec(RelSpec.innerRel), 2);
 		//----------------------------------------------------------------------------------------------------------------
 		//============================================================================================================================
-
+*/
 		Tuple t = new Tuple();
 
 		AttrType [] Rtypes = new AttrType[4];
@@ -103,11 +104,11 @@ public class Pt2DJoinTest
 		Sprojection[2] = new FldSpec(new RelSpec(RelSpec.outer), 3);
 		Sprojection[3] = new FldSpec(new RelSpec(RelSpec.outer), 4);
 
-
+/*
 		//Changes output--------------------------------------------------------------------------------------
 		FldSpec [] proj_list = new FldSpec[2];
-		proj_list[0] = new FldSpec(new RelSpec(RelSpec.outer), 4);
-		proj_list[1] = new FldSpec(new RelSpec(RelSpec.innerRel), 4);
+		proj_list[0] = new FldSpec(new RelSpec(RelSpec.outer), 1);
+		proj_list[1] = new FldSpec(new RelSpec(RelSpec.innerRel), 1);
 		//proj_list[2] = new FldSpec(new RelSpec(RelSpec.outer), 2);
 		//proj_list[3] = new FldSpec(new RelSpec(RelSpec.outer), 2);
 		//data type of output---------------------------------------------------------------------------------
@@ -117,15 +118,14 @@ public class Pt2DJoinTest
 		//jtype[2] = new AttrType (AttrType.attrInteger);
 		//jtype[3] = new AttrType (AttrType.attrInteger);
 		//-----------------------------------------------------------------------------------------------------
-		
+		*/
 		Pt2DIEJoin nlj = null;
 		
 		try{//==================================================================CHANGE BASED ON COND==============================
-			nlj = new Pt2DIEJoin("R", Rprojection, Rtypes, 4, "S", Sprojection, Stypes, 4, proj_list, jtype, 2, testCond2, 10);
+			nlj = new Pt2DIEJoin(hb.get_table1(), Rprojection, Rtypes, 4, hb.get_table2(), Sprojection, Stypes,
+					4, hb.get_fs(), hb.get_at(), hb.get_out_size(), hb.get_cond(), 10);
 		}
 		catch (Exception e) {
-			System.err.println("*** join error in SortMerge constructor ***"); 
-			System.err.println (""+e);
 			e.printStackTrace();
 		}
 
@@ -134,12 +134,11 @@ public class Pt2DJoinTest
 		
 		try {
 			while ((t = nlj.get_next()) != null) {
-				t.print(jtype);
+				t.print(hb.get_at());
 				
 			}
 		}
 		catch (Exception e) {
-			System.err.println (""+e);
 			e.printStackTrace();
 		}
 		
