@@ -2,8 +2,6 @@ package iterator;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -12,6 +10,7 @@ import java.util.Map;
 
 //import tests.TableEntry;
 
+import btree.BT;
 import bufmgr.PageNotReadException;
 import global.AttrOperator;
 import global.AttrType;
@@ -49,16 +48,20 @@ public class Pt2DIEJoin {
 
 	private int innerindex, outerindex;
 	private boolean finished, continueing;
+	
+	private int prevnum;
 
 
 	public Pt2DIEJoin(String r1, FldSpec[] r1_fields, AttrType[] r1_types, int r1_size, String r2, FldSpec[] r2_fields, AttrType[] r2_types, int r2_size,
 			FldSpec[] proj_list, AttrType[] proj_type, int proj_size, CondExpr[] expr, int mem_size) 
 					throws JoinsException, IndexException, InvalidTupleSizeException, InvalidTypeException, PageNotReadException, PredEvalException, LowMemException, UnknowAttrType, UnknownKeyTypeException, Exception
 	{
+		
 		innerindex = 0;
 		outerindex = 0;
 		finished = false;
 		continueing = false;
+		prevnum = -1;
 
 		//copy all the info needed
 		f1name = r1;
@@ -186,6 +189,8 @@ public class Pt2DIEJoin {
 
 		Tuple TempTuple1 = combiner1.get_next();
 		Tuple TempTuple2 = combiner2.get_next();
+		Tuple tt1 = null;
+		Tuple tt2 = null;
 		RID rid;
 		hf1 = null;
 		hf2 = null;
@@ -213,30 +218,59 @@ public class Pt2DIEJoin {
 				if(TempTuple1.getIntFld(r1c1) <= TempTuple2.getIntFld(r2c1))
 				{
 					try {
-						rid = hf1.insertRecord(TempTuple1.returnTupleByteArray());
-						TempTuple1 = combiner1.get_next();
-						tableArr1[tableArrIndex] = false;
-						tableArrIndex++;
-
+						if(tt1 == null)
+						{
+							rid = hf1.insertRecord(TempTuple1.returnTupleByteArray());
+							tableArr1[tableArrIndex] = false;
+							tableArrIndex++;
+						}
+						else
+						{
+							byte[] temp1 = tt1.getData();
+							byte[] temp2 = TempTuple1.getData();
+							if (!Arrays.equals(temp1, temp2)) 
+							{
+								rid = hf1.insertRecord(TempTuple1.returnTupleByteArray());
+								tableArr1[tableArrIndex] = false;
+								tableArrIndex++;
+							}
+						}
 					}
 					catch (Exception e) {
 						System.err.println("*** error in Heapfile.insertRecord() ***");
 						e.printStackTrace();
 					}
+					tt1 = new Tuple(TempTuple1);
+					TempTuple1 = combiner1.get_next();
 				}
 				else
 				{
 
 					try {
-						rid = hf1.insertRecord(TempTuple2.returnTupleByteArray());
-						TempTuple2 = combiner2.get_next();
-						tableArr1[tableArrIndex] = true;
-						tableArrIndex++;
+						if(tt2 == null)
+						{
+							rid = hf1.insertRecord(TempTuple2.returnTupleByteArray());
+							tableArr1[tableArrIndex] = true;
+							tableArrIndex++;
+						}
+						else
+						{
+							byte[] temp1 = tt2.getData();
+							byte[] temp2 = TempTuple2.getData();
+							if (!Arrays.equals(temp1, temp2)) 
+							{
+								rid = hf1.insertRecord(TempTuple2.returnTupleByteArray());
+								tableArr1[tableArrIndex] = true;
+								tableArrIndex++;
+							}
+						}
 					}
 					catch (Exception e) {
 						System.err.println("*** error in Heapfile.insertRecord() ***");
 						e.printStackTrace();
 					}
+					tt2 = new Tuple(TempTuple2);
+					TempTuple2 = combiner2.get_next();
 				}
 			}
 			else
@@ -244,30 +278,59 @@ public class Pt2DIEJoin {
 				if(TempTuple1.getIntFld(r1c1) >= TempTuple2.getIntFld(r2c1))
 				{
 					try {
-						rid = hf1.insertRecord(TempTuple1.returnTupleByteArray());
-						TempTuple1 = combiner1.get_next();
-						tableArr1[tableArrIndex] = false;
-						tableArrIndex++;
-
+						if(tt1 == null)
+						{
+							rid = hf1.insertRecord(TempTuple1.returnTupleByteArray());
+							tableArr1[tableArrIndex] = false;
+							tableArrIndex++;
+						}
+						else
+						{
+							byte[] temp1 = tt1.getData();
+							byte[] temp2 = TempTuple1.getData();
+							if (!Arrays.equals(temp1, temp2)) 
+							{
+								rid = hf1.insertRecord(TempTuple1.returnTupleByteArray());
+								tableArr1[tableArrIndex] = false;
+								tableArrIndex++;
+							}
+						}
 					}
 					catch (Exception e) {
 						System.err.println("*** error in Heapfile.insertRecord() ***");
 						e.printStackTrace();
 					}
+					tt1 = new Tuple(TempTuple1);
+					TempTuple1 = combiner1.get_next();
 				}
 				else
 				{
 
 					try {
-						rid = hf1.insertRecord(TempTuple2.returnTupleByteArray());
-						TempTuple2 = combiner2.get_next();
-						tableArr1[tableArrIndex] = true;
-						tableArrIndex++;
+						if(tt2 == null)
+						{
+							rid = hf1.insertRecord(TempTuple2.returnTupleByteArray());
+							tableArr1[tableArrIndex] = true;
+							tableArrIndex++;
+						}
+						else
+						{
+							byte[] temp1 = tt2.getData();
+							byte[] temp2 = TempTuple2.getData();
+							if (!Arrays.equals(temp1, temp2)) 
+							{
+								rid = hf1.insertRecord(TempTuple2.returnTupleByteArray());
+								tableArr1[tableArrIndex] = true;
+								tableArrIndex++;
+							}
+						}
 					}
 					catch (Exception e) {
 						System.err.println("*** error in Heapfile.insertRecord() ***");
 						e.printStackTrace();
 					}
+					tt2 = new Tuple(TempTuple2);
+					TempTuple2 = combiner2.get_next();
 				}
 			}
 		}
@@ -275,28 +338,58 @@ public class Pt2DIEJoin {
 		while(TempTuple1 != null)
 		{
 			try {
-				rid = hf1.insertRecord(TempTuple1.returnTupleByteArray());
-				TempTuple1 = combiner1.get_next();
-				tableArr1[tableArrIndex] = false;
-				tableArrIndex++;
+				if(tt1 == null)
+				{
+					rid = hf1.insertRecord(TempTuple1.returnTupleByteArray());
+					tableArr1[tableArrIndex] = false;
+					tableArrIndex++;
+				}
+				else
+				{
+					byte[] temp1 = tt1.getData();
+					byte[] temp2 = TempTuple1.getData();
+					if (!Arrays.equals(temp1, temp2)) 
+					{
+						rid = hf1.insertRecord(TempTuple1.returnTupleByteArray());
+						tableArr1[tableArrIndex] = false;
+						tableArrIndex++;
+					}
+				}
 			}
 			catch (Exception e) {
 				System.err.println("*** error in Heapfile.insertRecord() ***");
 				e.printStackTrace();
 			}
+			tt1 = new Tuple(TempTuple1);
+			TempTuple1 = combiner1.get_next();
 		}
 		while(TempTuple2 != null)
 		{
 			try {
-				rid = hf1.insertRecord(TempTuple2.returnTupleByteArray());
-				TempTuple2 = combiner2.get_next();
-				tableArr1[tableArrIndex] = true;
-				tableArrIndex++;
+				if(tt2 == null)
+				{
+					rid = hf1.insertRecord(TempTuple2.returnTupleByteArray());
+					tableArr1[tableArrIndex] = true;
+					tableArrIndex++;
+				}
+				else
+				{
+					byte[] temp1 = tt2.getData();
+					byte[] temp2 = TempTuple2.getData();
+					if (!Arrays.equals(temp1, temp2)) 
+					{
+						rid = hf1.insertRecord(TempTuple2.returnTupleByteArray());
+						tableArr1[tableArrIndex] = true;
+						tableArrIndex++;
+					}
+				}
 			}
 			catch (Exception e) {
 				System.err.println("*** error in Heapfile.insertRecord() ***");
 				e.printStackTrace();
 			}
+			tt2 = new Tuple(TempTuple2);
+			TempTuple2 = combiner2.get_next();
 		}
 
 		//sort2===============================================================================================
@@ -341,29 +434,60 @@ public class Pt2DIEJoin {
 				{
 					if(TempTuple1.getIntFld(r1c2) <= TempTuple2.getIntFld(r2c2))
 					{
+
 						try {
-							rid = hf2.insertRecord(TempTuple1.returnTupleByteArray());
-							TempTuple1 = combiner1.get_next();
-							tableArr2[tableArrIndex] = false;
-							tableArrIndex++;
+							if(tt2 == null)
+							{
+								rid = hf2.insertRecord(TempTuple1.returnTupleByteArray());
+								tableArr2[tableArrIndex] = false;
+								tableArrIndex++;
+							}
+							else
+							{
+								byte[] temp1 = tt1.getData();
+								byte[] temp2 = TempTuple1.getData();
+								if (!Arrays.equals(temp1, temp2)) 
+								{
+									rid = hf2.insertRecord(TempTuple1.returnTupleByteArray());
+									tableArr2[tableArrIndex] = false;
+									tableArrIndex++;
+								}
+							}
 						}
 						catch (Exception e) {
 							System.err.println("*** error in Heapfile.insertRecord() ***");
 							e.printStackTrace();
 						}
+						tt1 = new Tuple(TempTuple1);
+						TempTuple1 = combiner1.get_next();
 					}
 					else
 					{
 						try {
-							rid = hf2.insertRecord(TempTuple2.returnTupleByteArray());
-							TempTuple2 = combiner2.get_next();
-							tableArr2[tableArrIndex] = true;
-							tableArrIndex++;
+							if(tt2 == null)
+							{
+								rid = hf2.insertRecord(TempTuple2.returnTupleByteArray());
+								tableArr2[tableArrIndex] = true;
+								tableArrIndex++;
+							}
+							else
+							{
+								byte[] temp1 = tt2.getData();
+								byte[] temp2 = TempTuple2.getData();
+								if (!Arrays.equals(temp1, temp2)) 
+								{
+									rid = hf2.insertRecord(TempTuple2.returnTupleByteArray());
+									tableArr2[tableArrIndex] = true;
+									tableArrIndex++;
+								}
+							}
 						}
 						catch (Exception e) {
 							System.err.println("*** error in Heapfile.insertRecord() ***");
 							e.printStackTrace();
 						}
+						tt2 = new Tuple(TempTuple2);
+						TempTuple2 = combiner2.get_next();
 					}
 				}
 				else
@@ -371,28 +495,59 @@ public class Pt2DIEJoin {
 					if(TempTuple1.getIntFld(r1c2) >= TempTuple2.getIntFld(r2c2))
 					{
 						try {
-							rid = hf2.insertRecord(TempTuple1.returnTupleByteArray());
-							TempTuple1 = combiner1.get_next();
-							tableArr2[tableArrIndex] = false;
-							tableArrIndex++;
+							if(tt2 == null)
+							{
+								rid = hf2.insertRecord(TempTuple1.returnTupleByteArray());
+								tableArr2[tableArrIndex] = false;
+								tableArrIndex++;
+							}
+							else
+							{
+								byte[] temp1 = tt1.getData();
+								byte[] temp2 = TempTuple1.getData();
+								if (!Arrays.equals(temp1, temp2)) 
+								{
+									rid = hf2.insertRecord(TempTuple1.returnTupleByteArray());
+									tableArr2[tableArrIndex] = false;
+									tableArrIndex++;
+								}
+							}
 						}
 						catch (Exception e) {
 							System.err.println("*** error in Heapfile.insertRecord() ***");
 							e.printStackTrace();
 						}
+						tt1 = new Tuple(TempTuple1);
+						TempTuple1 = combiner1.get_next();
+						
 					}
 					else
 					{
 						try {
-							rid = hf2.insertRecord(TempTuple2.returnTupleByteArray());
-							TempTuple2 = combiner2.get_next();
-							tableArr2[tableArrIndex] = true;
-							tableArrIndex++;
+							if(tt2 == null)
+							{
+								rid = hf2.insertRecord(TempTuple2.returnTupleByteArray());
+								tableArr2[tableArrIndex] = true;
+								tableArrIndex++;
+							}
+							else
+							{
+								byte[] temp1 = tt2.getData();
+								byte[] temp2 = TempTuple2.getData();
+								if (!Arrays.equals(temp1, temp2)) 
+								{
+									rid = hf2.insertRecord(TempTuple2.returnTupleByteArray());
+									tableArr2[tableArrIndex] = true;
+									tableArrIndex++;
+								}
+							}
 						}
 						catch (Exception e) {
 							System.err.println("*** error in Heapfile.insertRecord() ***");
 							e.printStackTrace();
 						}
+						tt2 = new Tuple(TempTuple2);
+						TempTuple2 = combiner2.get_next();
 					}
 				}
 			}
@@ -400,28 +555,58 @@ public class Pt2DIEJoin {
 			while(TempTuple1 != null)
 			{
 				try {
-					rid = hf2.insertRecord(TempTuple1.returnTupleByteArray());
-					TempTuple1 = combiner1.get_next();
-					tableArr2[tableArrIndex] = false;
-					tableArrIndex++;
+					if(tt2 == null)
+					{
+						rid = hf2.insertRecord(TempTuple1.returnTupleByteArray());
+						tableArr2[tableArrIndex] = false;
+						tableArrIndex++;
+					}
+					else
+					{
+						byte[] temp1 = tt1.getData();
+						byte[] temp2 = TempTuple1.getData();
+						if (!Arrays.equals(temp1, temp2)) 
+						{
+							rid = hf2.insertRecord(TempTuple1.returnTupleByteArray());
+							tableArr2[tableArrIndex] = false;
+							tableArrIndex++;
+						}
+					}
 				}
 				catch (Exception e) {
 					System.err.println("*** error in Heapfile.insertRecord() ***");
 					e.printStackTrace();
 				}
+				tt1 = new Tuple(TempTuple1);
+				TempTuple1 = combiner1.get_next();
 			}
 			while(TempTuple2 != null)
 			{
 				try {
-					rid = hf2.insertRecord(TempTuple2.returnTupleByteArray());
-					TempTuple2 = combiner2.get_next();
-					tableArr2[tableArrIndex] = true;
-					tableArrIndex++;
+					if(tt2 == null)
+					{
+						rid = hf2.insertRecord(TempTuple2.returnTupleByteArray());
+						tableArr2[tableArrIndex] = true;
+						tableArrIndex++;
+					}
+					else
+					{
+						byte[] temp1 = tt2.getData();
+						byte[] temp2 = TempTuple2.getData();
+						if (!Arrays.equals(temp1, temp2)) 
+						{
+							rid = hf2.insertRecord(TempTuple2.returnTupleByteArray());
+							tableArr2[tableArrIndex] = true;
+							tableArrIndex++;
+						}
+					}
 				}
 				catch (Exception e) {
 					System.err.println("*** error in Heapfile.insertRecord() ***");
 					e.printStackTrace();
 				}
+				tt2 = new Tuple(TempTuple2);
+				TempTuple2 = combiner2.get_next();
 			}
 		}
 		//==============================================================================================
@@ -576,11 +761,15 @@ public class Pt2DIEJoin {
 									Jtuple.setHdr((short)projsize, pt, null);
 	
 									Projection.Join(t1, r1t, t2, r2t, Jtuple, pf, projsize);
-	
-									continueing = true;
-									//increment so that we do not loop forever
-									innerindex++;
-									return Jtuple;
+
+									if(!(projsize == 1 && prevnum == Jtuple.getIntFld(1)))
+									{
+										prevnum = Jtuple.getIntFld(1);
+										continueing = true;
+										//increment so that we do not loop forever
+										innerindex++;
+										return Jtuple;
+									}
 								}
 							}
 							catch(Exception e)
@@ -636,10 +825,14 @@ public class Pt2DIEJoin {
 
 								Projection.Join(t1, r1t, t2, r2t, Jtuple, pf, projsize);
 
-								continueing = true;
-								//increment so that we do not loop forever
-								innerindex++;
-								return Jtuple;
+								if(!(projsize == 1 && prevnum != Jtuple.getIntFld(1)))
+								{
+									prevnum = Jtuple.getIntFld(1);
+									continueing = true;
+									//increment so that we do not loop forever
+									innerindex++;
+									return Jtuple;
+								}
 							}
 						}
 						catch(Exception e)
