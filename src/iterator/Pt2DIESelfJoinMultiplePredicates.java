@@ -300,7 +300,7 @@ public class Pt2DIESelfJoinMultiplePredicates extends Iterator {
 			for (int j = position - 1 + eqOff; j < n; j++) {
 				if(bloomArr[j / COMPRATE] == 0)
 				{
-					j = ((j / COMPRATE) + 1) * COMPRATE;
+					j = (((j / COMPRATE) + 1) * COMPRATE) - 1;
 				}
 				else
 				{

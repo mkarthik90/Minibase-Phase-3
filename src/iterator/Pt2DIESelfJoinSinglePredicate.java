@@ -325,7 +325,7 @@ public class Pt2DIESelfJoinSinglePredicate extends Iterator implements GlobalCon
 			for (int j = 0; j < n; j++) {
 				if(bloomArr[j/COMPRATE] == 0)
 				{
-					j = (((j / COMPRATE) + 1) * COMPRATE);
+					j = (((j / COMPRATE) + 1) * COMPRATE) - 1;
 				}
 				else
 				{

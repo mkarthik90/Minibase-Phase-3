@@ -727,7 +727,7 @@ public class Pt2DIEJoin {
 					//first check the bloom array for large scale iteration
 					if(bloomArr[innerindex / comprsize] == 0)
 					{
-						innerindex = ((innerindex / comprsize) +1 ) * comprsize;
+						innerindex = (((innerindex / comprsize) +1 ) * comprsize) - 1;
 					}
 					else
 					{
