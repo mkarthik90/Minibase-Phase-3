@@ -32,9 +32,11 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 	private int nOutFlds;
 	private int[] permutationArray;
 	private int[] bitArray;
-	// TODO
 	private int SIZEOFTABLE = 0;
 	private int totalNumberOfResult = 0;
+	private String condition = "";
+	private int joinColumnOne = 0;
+	private int joinColumnTwo = 0;
 
 	/**
 	 * constructor,initialization
@@ -99,12 +101,15 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 			boolean in1_sorted, boolean in2_sorted, TupleOrder order,
 			TupleOrder order2,
 
-			CondExpr outFilter[], FldSpec proj_list[], int n_out_flds, int sizeOfTable)
+			CondExpr outFilter[], FldSpec proj_list[], int n_out_flds, int sizeOfTable,String conditionalOperator)
 			throws JoinsException, IndexException, InvalidTupleSizeException,
 			InvalidTypeException, PageNotReadException, PredEvalException,
 			LowMemException, UnknowAttrType, UnknownKeyTypeException, Exception
 
 	{
+		joinColumnOne = join_col_in1;
+		joinColumnTwo = join_col_in2;
+		condition = conditionalOperator;
 		SIZEOFTABLE = sizeOfTable;
 		_in1 = new AttrType[in1.length];
 		_in2 = new AttrType[in2.length];
@@ -232,6 +237,13 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 			permutationPosition++;
 			// i++;
 		}
+		
+		permutationArray[0] = 1;
+		permutationArray[1] = 2;
+		permutationArray[2] = 3;
+		permutationArray[3] = 4;
+		permutationArray[4] = 5;
+		
 
 		// SETTING up bit array
 		temp_p_i1 = (Iterator) p_i1.clone();
@@ -296,6 +308,7 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 
 		// change based on condition
 		int eqOff = 1;
+		Tuple nextPositionTuple = new Tuple();
 
 		/* IEJoin - code */
 
@@ -306,6 +319,7 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 			Iterator tempP_i1 = (Iterator) p_i1.clone();
 			Iterator tempP_i2 = (Iterator) p_i2.clone();
 
+			
 			int tempPosition = position;
 			while (tempPosition > 0) {
 				tempPosition--;
@@ -314,7 +328,9 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 
 			// Now tuple1 contains the position tuple
 			// tuple1 = p_i2.get_next();
+			
 			bitArray[position - 1] = 1;
+			
 			for (int j = 0; j < n; j++) {
 				TempTuple1 = null;
 				TempTuple1 = (Tuple) tuple1.clone();
@@ -337,11 +353,15 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 					jtype2[2] = new AttrType(AttrType.attrInteger);
 					jtype2[3] = new AttrType(AttrType.attrInteger);
 
-					/*
-					 * System.out.println("*****"); TempTuple1.print(jtype2);
-					 * tuple1.print(jtype2); TempTuple2.print(jtype2);
-					 * tuple2.print(jtype2);
-					 */
+					if (i != j
+							&& TempTuple1.getIntFld(joinColumnOne) == tuple2.getIntFld(joinColumnTwo)
+							&& (condition.equalsIgnoreCase("2")
+							|| condition.equalsIgnoreCase("3"))) {
+						Projection.Join(tuple2, _in2, TempTuple1, _in1, Jtuple,
+								perm_mat, nOutFlds);
+						totalNumberOfResult++;
+						Jtuple.print(jtype);
+					}
 
 					if (PredEval.Eval(OutputFilter, TempTuple1, tuple2, _in1,
 							_in2) == true) {

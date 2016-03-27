@@ -212,7 +212,7 @@ public class IESelfJoinTest {
 					tupleOrderFor1, tupleOrderFor2, outFilter, proj_list,
 					2/*
 					 * number of output fields
-					 */, SIZEOFTABLE);
+					 */, SIZEOFTABLE,conditionalOperator);
 		} catch (Exception e) {
 			System.err
 					.println("*** join error in IESelfJoinTest constructor ***");
@@ -445,8 +445,8 @@ public class IESelfJoinTest {
 
 	public boolean runTests() {
 		try {
-			//Query2a();
-			Query2b();
+			Query2a();
+			//Query2b();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
