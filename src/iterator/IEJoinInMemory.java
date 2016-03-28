@@ -30,12 +30,12 @@ public class IEJoinInMemory extends Iterator{
 	private int[] l1Offset, l2Offset, bitArray, permArr, primePermArr;
 	private int eqOff, m, n;
 	private Map<String, Set<Integer>> _projRels;
-	private IEJoinArray _elements;
+	private IEJoinInMemoryArray _elements;
 
-	enum IEJoinArrayType{
+	enum IEJoinInMemoryArrayType{
 		L1, L1Prime, L2, L2Prime;
 
-		public static final IEJoinArrayType[] ALL_TYPES = {L1, L1Prime, L2, L2Prime};
+		public static final IEJoinInMemoryArrayType[] ALL_TYPES = {L1, L1Prime, L2, L2Prime};
 	}
 
 	class TupleComparator implements Comparator<Tuple>{
@@ -67,12 +67,12 @@ public class IEJoinInMemory extends Iterator{
 
 	}
 
-	class IEJoinArray{
-		private Map<IEJoinArrayType, List<Tuple>> _values;
+	class IEJoinInMemoryArray{
+		private Map<IEJoinInMemoryArrayType, List<Tuple>> _values;
 		private int _l1TupleOrder, _l2TupleOrder;
 
-		public IEJoinArray(String r1, String r2, int r1c1, int r2c1, int r1c2, int r2c2, int op1, int op2){
-			_values = new HashMap<IEJoinArrayType, List<Tuple>>();
+		public IEJoinInMemoryArray(String r1, String r2, int r1c1, int r2c1, int r1c2, int r2c2, int op1, int op2){
+			_values = new HashMap<IEJoinInMemoryArrayType, List<Tuple>>();
 			_populateValues(r1, r2);
 			_sortValues(r1c1, r2c1, r1c2, r2c2, op1, op2);
 
@@ -81,7 +81,7 @@ public class IEJoinInMemory extends Iterator{
 		}
 		
 		private void _print(){
-			for(IEJoinArrayType key : _values.keySet()){
+			for(IEJoinInMemoryArrayType key : _values.keySet()){
 				System.out.println(key);
 				for(Tuple tuple : _values.get(key)){
 					try {
@@ -95,11 +95,11 @@ public class IEJoinInMemory extends Iterator{
 		}
 
 		public int getR1Size(){
-			return _values.get(IEJoinArrayType.L1).size();
+			return _values.get(IEJoinInMemoryArrayType.L1).size();
 		}
 
 		public int getR2Size(){
-			return _values.get(IEJoinArrayType.L1Prime).size();
+			return _values.get(IEJoinInMemoryArrayType.L1Prime).size();
 		}
 
 		public int getL1TupleOrder(){
@@ -127,8 +127,8 @@ public class IEJoinInMemory extends Iterator{
 				_l1TupleOrder = TupleOrder.Ascending;
 			}
 
-			Collections.sort(_values.get(IEJoinArrayType.L1), r1Comp);
-			Collections.sort(_values.get(IEJoinArrayType.L1Prime), r2Comp);
+			Collections.sort(_values.get(IEJoinInMemoryArrayType.L1), r1Comp);
+			Collections.sort(_values.get(IEJoinInMemoryArrayType.L1Prime), r2Comp);
 
 			//line 5-6
 			if(op2 == AttrOperator.aopGT || op2 == AttrOperator.aopGE){
@@ -144,12 +144,12 @@ public class IEJoinInMemory extends Iterator{
 				_l2TupleOrder = TupleOrder.Descending;
 			}
 
-			Collections.sort(_values.get(IEJoinArrayType.L2), r1Comp);
-			Collections.sort(_values.get(IEJoinArrayType.L2Prime), r2Comp);
+			Collections.sort(_values.get(IEJoinInMemoryArrayType.L2), r1Comp);
+			Collections.sort(_values.get(IEJoinInMemoryArrayType.L2Prime), r2Comp);
 		}
 
 		private void _populateValues(String r1, String r2){
-			for(IEJoinArrayType type : IEJoinArrayType.ALL_TYPES){
+			for(IEJoinInMemoryArrayType type : IEJoinInMemoryArrayType.ALL_TYPES){
 				_values.put(type, new ArrayList<Tuple>());
 			}
 
@@ -163,8 +163,8 @@ public class IEJoinInMemory extends Iterator{
 					tempCopy.setHdr((short)4, _ATTR_TYPES, null);
 					tempCopy.tupleCopy(temp);
 
-					_values.get(IEJoinArrayType.L1).add(tempCopy);
-					_values.get(IEJoinArrayType.L2).add(tempCopy);
+					_values.get(IEJoinInMemoryArrayType.L1).add(tempCopy);
+					_values.get(IEJoinInMemoryArrayType.L2).add(tempCopy);
 				}
 
 				while((temp = r2Scan.get_next()) != null){
@@ -172,8 +172,8 @@ public class IEJoinInMemory extends Iterator{
 					tempCopy.setHdr((short)4, _ATTR_TYPES, null);
 					tempCopy.tupleCopy(temp);
 
-					_values.get(IEJoinArrayType.L1Prime).add(tempCopy);
-					_values.get(IEJoinArrayType.L2Prime).add(tempCopy);
+					_values.get(IEJoinInMemoryArrayType.L1Prime).add(tempCopy);
+					_values.get(IEJoinInMemoryArrayType.L2Prime).add(tempCopy);
 				}
 			} catch (JoinsException | InvalidTupleSizeException | InvalidTypeException | PageNotReadException
 					| PredEvalException | UnknowAttrType | FieldNumberOutOfBoundException | WrongPermat
@@ -183,29 +183,29 @@ public class IEJoinInMemory extends Iterator{
 		}
 
 		public Tuple getFromL1(int idx){
-			return _get(IEJoinArrayType.L1, idx);
+			return _get(IEJoinInMemoryArrayType.L1, idx);
 		}
 
 		public Tuple getFromL1Prime(int idx){
-			return _get(IEJoinArrayType.L1Prime, idx);
+			return _get(IEJoinInMemoryArrayType.L1Prime, idx);
 		}
 
 		public Tuple getFromL2(int idx){
-			return _get(IEJoinArrayType.L2, idx);
+			return _get(IEJoinInMemoryArrayType.L2, idx);
 		}
 
 		public Tuple getFromL2Prime(int idx){
-			return _get(IEJoinArrayType.L2Prime, idx);
+			return _get(IEJoinInMemoryArrayType.L2Prime, idx);
 		}
 
-		private Tuple _get(IEJoinArrayType type, int idx){
+		private Tuple _get(IEJoinInMemoryArrayType type, int idx){
 			return _values.get(type).get(idx);
 		}
 	}
 
 	public IEJoinInMemory(String r1, String r2, int r1c1, int r2c1, int r1c2, int r2c2, int op1, int op2, Map<String, Set<Integer>> projRels) throws JoinsException, IndexException, InvalidTupleSizeException, InvalidTypeException, PageNotReadException, PredEvalException, LowMemException, UnknowAttrType, UnknownKeyTypeException, Exception{
 		_projRels = projRels;
-		_elements = new IEJoinArray(r1, r2, r1c1, r2c1, r1c2, r2c2, op1, op2);
+		_elements = new IEJoinInMemoryArray(r1, r2, r1c1, r2c1, r1c2, r2c2, op1, op2);
 		m = _elements.getR1Size();
 		n = _elements.getR2Size();
 
