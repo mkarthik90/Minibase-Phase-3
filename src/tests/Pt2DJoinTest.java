@@ -19,58 +19,17 @@ public class Pt2DJoinTest
 	public static void main(String args[])
 	{
 		HelpBundle hb = new HelpBundle();
-        hb.parseQuery("queries/query_2d.txt");
-		DBBuilder.build(hb.get_table1(), hb.get_table2());
-/*
-		//Query 1-----------------------------------------------------------------------------------------------------
-		CondExpr[] testCond1 = new CondExpr[2];
-		CondExpr[] testCond2 = new CondExpr[2];
-		testCond1[0] = new CondExpr();
-		testCond1[1] = new CondExpr();
-		testCond2[0] = new CondExpr();
-		testCond2[1] = new CondExpr();
+        hb.parseQuery("queries/query_1b.txt");
 
-
-		//Test Condition 1============================================================================================================
-		//Condition 1-------------------------------------------------------------------------------------------------------
-		testCond1[0].next  = null;
-		testCond1[0].op    = new AttrOperator(AttrOperator.aopLE);
-		testCond1[0].type1 = new AttrType(AttrType.attrSymbol);
-		testCond1[0].type2 = new AttrType(AttrType.attrSymbol);
-		//testCond1[0].type2 = new AttrType(AttrType.attrInteger);
-		testCond1[0].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer), 1);
-		testCond1[0].operand2.symbol = new FldSpec (new RelSpec(RelSpec.innerRel), 1);
-		//testCond1[0].operand2.integer = 324535;
-
-		//Condition 2--------------------------------------------------------------------------------------------------------
-//		testCond1[1].op    = new AttrOperator(AttrOperator.aopGT);
-//		testCond1[1].next  = null;
-//		testCond1[1].type1 = new AttrType(AttrType.attrSymbol);
-//		testCond1[1].type2 = new AttrType(AttrType.attrSymbol);
-//		testCond1[1].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer), 2);
-//		testCond1[1].operand2.symbol = new FldSpec (new RelSpec(RelSpec.innerRel), 2);
-		testCond1[1] = null;
-		//----------------------------------------------------------------------------------------------------------------
-
-		//Test Condition 2============================================================================================================
-		//Condition 1-------------------------------------------------------------------------------------------------------
-		testCond2[0].next  = null;
-		testCond2[0].op    = new AttrOperator(AttrOperator.aopGT);
-		testCond2[0].type1 = new AttrType(AttrType.attrSymbol);
-		testCond2[0].type2 = new AttrType(AttrType.attrSymbol);
-		testCond2[0].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer), 1);
-		testCond2[0].operand2.symbol = new FldSpec (new RelSpec(RelSpec.innerRel), 1);
-
-		//Condition 2--------------------------------------------------------------------------------------------------------
-		testCond2[1].op    = new AttrOperator(AttrOperator.aopGT);
-		testCond2[1].next  = null;
-		testCond2[1].type1 = new AttrType(AttrType.attrSymbol);
-		testCond2[1].type2 = new AttrType(AttrType.attrSymbol);
-		testCond2[1].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer), 2);
-		testCond2[1].operand2.symbol = new FldSpec (new RelSpec(RelSpec.innerRel), 2);
-		//----------------------------------------------------------------------------------------------------------------
-		//============================================================================================================================
-*/
+        if(hb.get_table2().equals("")||hb.get_table1().equals(hb.get_table2()))
+        {
+        	DBBuilder.build(hb.get_table1());
+        }
+        else
+        {
+        	DBBuilder.build(hb.get_table1(), hb.get_table2());
+        }
+        
 		Tuple t = new Tuple();
 
 		AttrType [] Rtypes = new AttrType[4];
@@ -104,25 +63,10 @@ public class Pt2DJoinTest
 		Sprojection[2] = new FldSpec(new RelSpec(RelSpec.outer), 3);
 		Sprojection[3] = new FldSpec(new RelSpec(RelSpec.outer), 4);
 
-/*
-		//Changes output--------------------------------------------------------------------------------------
-		FldSpec [] proj_list = new FldSpec[2];
-		proj_list[0] = new FldSpec(new RelSpec(RelSpec.outer), 1);
-		proj_list[1] = new FldSpec(new RelSpec(RelSpec.innerRel), 1);
-		//proj_list[2] = new FldSpec(new RelSpec(RelSpec.outer), 2);
-		//proj_list[3] = new FldSpec(new RelSpec(RelSpec.outer), 2);
-		//data type of output---------------------------------------------------------------------------------
-		AttrType [] jtype = new AttrType[2];
-		jtype[0] = new AttrType (AttrType.attrInteger);
-		jtype[1] = new AttrType (AttrType.attrInteger);
-		//jtype[2] = new AttrType (AttrType.attrInteger);
-		//jtype[3] = new AttrType (AttrType.attrInteger);
-		//-----------------------------------------------------------------------------------------------------
-		*/
-		Pt2DIEJoin nlj = null;
+		Pt2DIEJoinInMem nlj = null;
 		
 		try{//==================================================================CHANGE BASED ON COND==============================
-			nlj = new Pt2DIEJoin(hb.get_table1(), Rprojection, Rtypes, 4, hb.get_table2(), Sprojection, Stypes,
+			nlj = new Pt2DIEJoinInMem(hb.get_table1(), Rprojection, Rtypes, 4, hb.get_table2(), Sprojection, Stypes,
 					4, hb.get_fs(), hb.get_at(), hb.get_out_size(), hb.get_cond(), 10);
 		}
 		catch (Exception e) {
