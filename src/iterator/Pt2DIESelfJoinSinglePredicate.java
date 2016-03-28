@@ -18,7 +18,7 @@ public class Pt2DIESelfJoinSinglePredicate extends Iterator implements GlobalCon
 	private AttrType _in1[], _in2[];
 	private int in1_len, in2_len;
 	private Iterator p_i1, // pointers to the two iterators. If the
-	p_i2; // inputs are sorted, then no sorting is done
+			p_i2; // inputs are sorted, then no sorting is done
 	private CondExpr OutputFilter[];
 
 	private short inner_str_sizes[];
@@ -32,12 +32,16 @@ public class Pt2DIESelfJoinSinglePredicate extends Iterator implements GlobalCon
 	private int nOutFlds;
 	private int[] permutationArray;
 	private int[] bitArray;
-	private int[] bloomArr;
-	// TODO
-	private final int SIZEOFTABLE = 5;
-	private final int COMPRATE = 10;
+	private int SIZEOFTABLE = 0;
+	private int totalNumberOfResult = 0;
+	private String condition = "";
+	private int joinColumnOne = 0;
+	private int joinColumnTwo = 0;
 
+	private final int COMPRATE = 10;
+	private int bloomArr[];
 	/**
+	 * This method initializes all the values required for execution of the algorithm
 	 * constructor,initialization
 	 * 
 	 * @param in1
@@ -89,23 +93,22 @@ public class Pt2DIESelfJoinSinglePredicate extends Iterator implements GlobalCon
 	 * @throws IndexException
 	 * @throws JoinsException
 	 */
-	public Pt2DIESelfJoinSinglePredicate(AttrType in1[], int len_in1, short s1_sizes[],
-			AttrType in2[], int len_in2, short s2_sizes[],
-
+	public Pt2DIESelfJoinSinglePredicate(AttrType in1[], int len_in1,
+			short s1_sizes[], AttrType in2[], int len_in2, short s2_sizes[],
 			int join_col_in1, int sortFld1Len, int join_col_in2,
-			int sortFld2Len,
-
-			int amt_of_mem, Iterator am1, Iterator am2,
-
+			int sortFld2Len, int amt_of_mem, Iterator am1, Iterator am2,
 			boolean in1_sorted, boolean in2_sorted, TupleOrder order,
-			TupleOrder order2,
+			TupleOrder order2,CondExpr outFilter[], FldSpec proj_list[], int n_out_flds,
+			int sizeOfTable, String conditionalOperator) throws JoinsException,
+			IndexException, InvalidTupleSizeException, InvalidTypeException,
+			PageNotReadException, PredEvalException, LowMemException,
+			UnknowAttrType, UnknownKeyTypeException, Exception
 
-			CondExpr outFilter[], FldSpec proj_list[], int n_out_flds)
-					throws JoinsException, IndexException, InvalidTupleSizeException,
-					InvalidTypeException, PageNotReadException, PredEvalException,
-					LowMemException, UnknowAttrType, UnknownKeyTypeException, Exception
-
-					{
+	{
+		joinColumnOne = join_col_in1;
+		joinColumnTwo = join_col_in2;
+		condition = conditionalOperator;
+		SIZEOFTABLE = sizeOfTable;
 		_in1 = new AttrType[in1.length];
 		_in2 = new AttrType[in2.length];
 		System.arraycopy(in1, 0, _in1, 0, in1.length);
@@ -123,7 +126,7 @@ public class Pt2DIESelfJoinSinglePredicate extends Iterator implements GlobalCon
 					in2, len_in2, s1_sizes, s2_sizes, proj_list, n_out_flds);
 		} catch (Exception e) {
 			throw new TupleUtilsException(e,
-					"Exception is caught by SortMerge.java");
+					"Exception is caught by IESelfJoinSinglePredciate.java");
 		}
 
 		int n_strs2 = 0;
@@ -171,9 +174,11 @@ public class Pt2DIESelfJoinSinglePredicate extends Iterator implements GlobalCon
 
 		if (io_buf1 == null || io_buf2 == null || TempTuple1 == null
 				|| TempTuple2 == null || tuple1 == null || tuple2 == null)
-			throw new JoinNewFailed("SortMerge.java: allocate failed");
+			throw new JoinNewFailed(
+					"IESelfJoinSinglePredciate.java: allocate failed");
 		if (amt_of_mem < 2)
-			throw new JoinLowMemory("SortMerge.java: memory not enough");
+			throw new JoinLowMemory(
+					"IESelfJoinSinglePredciate.java: memory not enough");
 
 		try {
 			TempTuple1.setHdr((short) in1_len, _in1, s1_sizes);
@@ -184,9 +189,6 @@ public class Pt2DIESelfJoinSinglePredicate extends Iterator implements GlobalCon
 			throw new SortException(e, "Set header failed");
 		}
 
-		// Two buffer pages to store equivalence classes
-		// NOTE -- THESE PAGES ARE NOT OBTAINED FROM THE BUFFER POOL
-		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		_n_pages = 1;
 
 		temp_file_fd1 = null;
@@ -199,14 +201,10 @@ public class Pt2DIESelfJoinSinglePredicate extends Iterator implements GlobalCon
 			throw new SortException(e, "Create heap file failed");
 		}
 
-		// Now, that stuff is setup, all we have to do is a get_next !!!!
-
 		// Setting up permutation array
-
 		Iterator temp_p_i1 = (Iterator) p_i1.clone();
 		permutationArray = new int[SIZEOFTABLE];
 		int permutationPosition = 0;
-		int i = 1;
 		Tuple l1 = null;
 		Tuple l2 = null;
 		while ((l1 = temp_p_i1.get_next()) != null) {
@@ -230,7 +228,6 @@ public class Pt2DIESelfJoinSinglePredicate extends Iterator implements GlobalCon
 			}
 			permutationArray[permutationPosition] = position;
 			permutationPosition++;
-			// i++;
 		}
 
 		// SETTING up bit array
@@ -245,21 +242,19 @@ public class Pt2DIESelfJoinSinglePredicate extends Iterator implements GlobalCon
 				System.out.println("Hold");
 			}
 		}
-		bloomArr = new int[(SIZEOFTABLE/COMPRATE) + 1];
-		for(int k = 0; k < (SIZEOFTABLE/COMPRATE) + 1; k++)
+		
+		//bloom array
+		bloomArr = new int[SIZEOFTABLE / COMPRATE + 1];
+		for(int i = 0; i < SIZEOFTABLE / COMPRATE + 1; i++)
 		{
-			bloomArr[k] = 0;
+			bloomArr[i] = 0;
 		}
-					}
+		
+	}
 
 	/**
-	 * The tuple is returned All this function has to do is to get 1 tuple from
-	 * one of the Iterators (from both initially), use the sorting order to
-	 * determine which one gets sent up. Amit) Hmmm it seems that some thing
-	 * more has to be done in order to account for duplicates.... => I am
-	 * following Raghu's 564 notes in order to obtain an algorithm for this
-	 * merging. Some funda about "equivalence classes"
-	 * 
+	 * This method executes self join with single predicate using the lighting fast algorithm. All the data are handled from disk using Iterators and Filescans.
+	 * Sorting is done using Heap Sort
 	 * @return the joined tuple is returned
 	 * @exception IOException
 	 *                I/O errors
@@ -290,10 +285,10 @@ public class Pt2DIESelfJoinSinglePredicate extends Iterator implements GlobalCon
 	 */
 
 	public Tuple get_next() throws IOException, JoinsException, IndexException,
-	InvalidTupleSizeException, InvalidTypeException,
-	PageNotReadException, TupleUtilsException, PredEvalException,
-	SortException, LowMemException, UnknowAttrType,
-	UnknownKeyTypeException, Exception {
+			InvalidTupleSizeException, InvalidTypeException,
+			PageNotReadException, TupleUtilsException, PredEvalException,
+			SortException, LowMemException, UnknowAttrType,
+			UnknownKeyTypeException, Exception {
 
 		AttrType[] jtype = new AttrType[2];
 		jtype[0] = new AttrType(AttrType.attrInteger);
@@ -317,11 +312,12 @@ public class Pt2DIESelfJoinSinglePredicate extends Iterator implements GlobalCon
 				tuple1 = tempP_i1.get_next();
 			}
 
-			bitArray[i] = 1;
-			bloomArr[i/COMPRATE] = 1;
 			// Now tuple1 contains the position tuple
 			// tuple1 = p_i2.get_next();
+
 			bitArray[position - 1] = 1;
+			bloomArr[(position - 1) / COMPRATE] = 1;
+
 			for (int j = 0; j < n; j++) {
 				if(bloomArr[j/COMPRATE] == 0)
 				{
@@ -344,17 +340,15 @@ public class Pt2DIESelfJoinSinglePredicate extends Iterator implements GlobalCon
 						// Now tuple2 contains the jth position record.
 						// Add to projection
 	
-						AttrType[] jtype2 = new AttrType[4];
-						jtype2[0] = new AttrType(AttrType.attrInteger);
-						jtype2[1] = new AttrType(AttrType.attrInteger);
-						jtype2[2] = new AttrType(AttrType.attrInteger);
-						jtype2[3] = new AttrType(AttrType.attrInteger);
-	
-						/*
-						 * System.out.println("*****"); TempTuple1.print(jtype2);
-						 * tuple1.print(jtype2); TempTuple2.print(jtype2);
-						 * tuple2.print(jtype2);
-						 */
+						if (i != j
+								&& TempTuple1.getIntFld(joinColumnOne) == tuple2
+										.getIntFld(joinColumnTwo)
+								&& (condition.equalsIgnoreCase("2") || condition
+										.equalsIgnoreCase("3"))) {
+							Projection.Join(tuple2, _in2, TempTuple1, _in1, Jtuple,
+									perm_mat, nOutFlds);
+							totalNumberOfResult++;
+						}
 	
 						if (PredEval.Eval(OutputFilter, TempTuple1, tuple2, _in1,
 								_in2) == true) {
@@ -362,9 +356,10 @@ public class Pt2DIESelfJoinSinglePredicate extends Iterator implements GlobalCon
 							Projection.Join(tuple1, _in1, tuple2, _in2, Jtuple,
 									perm_mat, nOutFlds);
 	
+							totalNumberOfResult++;
 							Jtuple.print(jtype);
-							// return Jtuple;
 						}
+
 					}
 				}
 				while (tempP_i2.get_next() != null)
@@ -373,8 +368,8 @@ public class Pt2DIESelfJoinSinglePredicate extends Iterator implements GlobalCon
 			while (tempP_i1.get_next() != null)
 				;
 		}
+		System.out.println("Tottal " + totalNumberOfResult);
 		return null;
-		/* IE Join - endcode */
 	}
 
 	/**
@@ -396,14 +391,14 @@ public class Pt2DIESelfJoinSinglePredicate extends Iterator implements GlobalCon
 				p_i2.close();
 			} catch (Exception e) {
 				throw new JoinsException(e,
-						"SortMerge.java: error in closing iterator.");
+						"IESelfJoinSinglePredicate.java: error in closing iterator.");
 			}
 			if (temp_file_fd1 != null) {
 				try {
 					temp_file_fd1.deleteFile();
 				} catch (Exception e) {
 					throw new JoinsException(e,
-							"SortMerge.java: delete file failed");
+							"IESelfJoinSinglePredicate.java: delete file failed");
 				}
 				temp_file_fd1 = null;
 			}
@@ -412,7 +407,7 @@ public class Pt2DIESelfJoinSinglePredicate extends Iterator implements GlobalCon
 					temp_file_fd2.deleteFile();
 				} catch (Exception e) {
 					throw new JoinsException(e,
-							"SortMerge.java: delete file failed");
+							"IESelfJoinSinglePredicate.java: delete file failed");
 				}
 				temp_file_fd2 = null;
 			}

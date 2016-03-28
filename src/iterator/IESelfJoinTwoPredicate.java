@@ -90,21 +90,17 @@ public class IESelfJoinTwoPredicate extends Iterator {
 	 */
 	public IESelfJoinTwoPredicate(AttrType in1[], int len_in1,
 			short s1_sizes[], AttrType in2[], int len_in2, short s2_sizes[],
-
 			int join_col_in1, int sortFld1Len, int join_col_in2,
-			int sortFld2Len,
-
-			int amt_of_mem, Iterator am1, Iterator am2,
-
+			int sortFld2Len, int amt_of_mem, Iterator am1, Iterator am2,
 			boolean in1_sorted, boolean in2_sorted, TupleOrder order,
 			TupleOrder order2, CondExpr outFilter[], FldSpec proj_list[],
-			int n_out_flds, int eqOf,int sizeOfTable) throws JoinsException, IndexException,
-			InvalidTupleSizeException, InvalidTypeException,
+			int n_out_flds, int eqOf, int sizeOfTable) throws JoinsException,
+			IndexException, InvalidTupleSizeException, InvalidTypeException,
 			PageNotReadException, PredEvalException, LowMemException,
 			UnknowAttrType, UnknownKeyTypeException, Exception
 
 	{
-		SIZEOFTABLE  = sizeOfTable;
+		SIZEOFTABLE = sizeOfTable;
 		eqOff = eqOf;
 		_in1 = new AttrType[in1.length];
 		_in2 = new AttrType[in2.length];
@@ -123,7 +119,7 @@ public class IESelfJoinTwoPredicate extends Iterator {
 					in2, len_in2, s1_sizes, s2_sizes, proj_list, n_out_flds);
 		} catch (Exception e) {
 			throw new TupleUtilsException(e,
-					"Exception is caught by SortMerge.java");
+					"Exception is caught by IE Self Join Two Predicate.java");
 		}
 
 		int n_strs2 = 0;
@@ -171,9 +167,11 @@ public class IESelfJoinTwoPredicate extends Iterator {
 
 		if (io_buf1 == null || io_buf2 == null || TempTuple1 == null
 				|| TempTuple2 == null || tuple1 == null || tuple2 == null)
-			throw new JoinNewFailed("IE Self Join Two predicate.java: allocate failed");
+			throw new JoinNewFailed(
+					"IE Self Join Two predicate.java: allocate failed");
 		if (amt_of_mem < 2)
-			throw new JoinLowMemory("IE Self Join Two predicate.java: memory not enough");
+			throw new JoinLowMemory(
+					"IE Self Join Two predicate.java: memory not enough");
 
 		try {
 			TempTuple1.setHdr((short) in1_len, _in1, s1_sizes);
@@ -184,9 +182,6 @@ public class IESelfJoinTwoPredicate extends Iterator {
 			throw new SortException(e, "Set header failed");
 		}
 
-		// Two buffer pages to store equivalence classes
-		// NOTE -- THESE PAGES ARE NOT OBTAINED FROM THE BUFFER POOL
-		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		_n_pages = 1;
 
 		temp_file_fd1 = null;
@@ -199,8 +194,6 @@ public class IESelfJoinTwoPredicate extends Iterator {
 			throw new SortException(e, "Create heap file failed");
 		}
 
-		// Now, that stuff is setup, all we have to do is a get_next !!!!
-
 		// Setting up permutation array
 
 		Iterator temp_p_i2 = (Iterator) p_i2.clone();
@@ -212,25 +205,15 @@ public class IESelfJoinTwoPredicate extends Iterator {
 		while ((l2 = temp_p_i2.get_next()) != null) {
 			tuple1 = l2;
 
-			AttrType[] type = new AttrType[4];
-			type[0] = new AttrType(AttrType.attrInteger);
-			type[1] = new AttrType(AttrType.attrInteger);
-			type[2] = new AttrType(AttrType.attrInteger);
-			type[3] = new AttrType(AttrType.attrInteger);
-
-			// tuple1.print(type);
-
 			Iterator temp_p_i1 = (Iterator) p_i1.clone();
 			int position = 1;
 
 			while ((l1 = temp_p_i1.get_next()) != null) {
-				// tuple1.print(type);
 
 				tuple2 = l1;
 				byte[] temp1 = tuple1.getData();
 				byte[] temp2 = tuple2.getData();
 				if (!Arrays.equals(temp1, temp2)) {
-					// System.out.println(position);
 					position++;
 				} else {
 					while ((l1 = temp_p_i1.get_next()) != null) {
@@ -240,7 +223,6 @@ public class IESelfJoinTwoPredicate extends Iterator {
 			}
 			permutationArray[permutationPosition] = position;
 			permutationPosition++;
-			// i++;
 		}
 
 		// SETTING up bit array
@@ -315,9 +297,8 @@ public class IESelfJoinTwoPredicate extends Iterator {
 			while (tempP_i1.get_next() != null)
 				;
 		}
-		System.out.println("Total Number Of Result"+ totalNumberOfResult);
+		System.out.println("Total Number Of Result" + totalNumberOfResult);
 		return null;
-		/* IE Join - endcode */
 	}
 
 	@Override

@@ -419,6 +419,7 @@ public class Pt2DIEJoin {
 				e.printStackTrace();
 			}
 
+			
 			t = new Tuple(TempTuple1.size());
 			try {
 				t.setHdr((short) 4, r1t, null);

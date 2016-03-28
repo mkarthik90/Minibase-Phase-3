@@ -39,6 +39,7 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 	private int joinColumnTwo = 0;
 
 	/**
+	 * This method initializes all the values required for execution of the algorithm
 	 * constructor,initialization
 	 * 
 	 * @param in1
@@ -90,21 +91,16 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 	 * @throws IndexException
 	 * @throws JoinsException
 	 */
-	public IESelfJoinSinglePredicate(AttrType in1[], int len_in1, short s1_sizes[],
-			AttrType in2[], int len_in2, short s2_sizes[],
-
+	public IESelfJoinSinglePredicate(AttrType in1[], int len_in1,
+			short s1_sizes[], AttrType in2[], int len_in2, short s2_sizes[],
 			int join_col_in1, int sortFld1Len, int join_col_in2,
-			int sortFld2Len,
-
-			int amt_of_mem, Iterator am1, Iterator am2,
-
+			int sortFld2Len, int amt_of_mem, Iterator am1, Iterator am2,
 			boolean in1_sorted, boolean in2_sorted, TupleOrder order,
-			TupleOrder order2,
-
-			CondExpr outFilter[], FldSpec proj_list[], int n_out_flds, int sizeOfTable,String conditionalOperator)
-			throws JoinsException, IndexException, InvalidTupleSizeException,
-			InvalidTypeException, PageNotReadException, PredEvalException,
-			LowMemException, UnknowAttrType, UnknownKeyTypeException, Exception
+			TupleOrder order2,CondExpr outFilter[], FldSpec proj_list[], int n_out_flds,
+			int sizeOfTable, String conditionalOperator) throws JoinsException,
+			IndexException, InvalidTupleSizeException, InvalidTypeException,
+			PageNotReadException, PredEvalException, LowMemException,
+			UnknowAttrType, UnknownKeyTypeException, Exception
 
 	{
 		joinColumnOne = join_col_in1;
@@ -128,7 +124,7 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 					in2, len_in2, s1_sizes, s2_sizes, proj_list, n_out_flds);
 		} catch (Exception e) {
 			throw new TupleUtilsException(e,
-					"Exception is caught by SortMerge.java");
+					"Exception is caught by IESelfJoinSinglePredciate.java");
 		}
 
 		int n_strs2 = 0;
@@ -176,9 +172,11 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 
 		if (io_buf1 == null || io_buf2 == null || TempTuple1 == null
 				|| TempTuple2 == null || tuple1 == null || tuple2 == null)
-			throw new JoinNewFailed("SortMerge.java: allocate failed");
+			throw new JoinNewFailed(
+					"IESelfJoinSinglePredciate.java: allocate failed");
 		if (amt_of_mem < 2)
-			throw new JoinLowMemory("SortMerge.java: memory not enough");
+			throw new JoinLowMemory(
+					"IESelfJoinSinglePredciate.java: memory not enough");
 
 		try {
 			TempTuple1.setHdr((short) in1_len, _in1, s1_sizes);
@@ -189,9 +187,6 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 			throw new SortException(e, "Set header failed");
 		}
 
-		// Two buffer pages to store equivalence classes
-		// NOTE -- THESE PAGES ARE NOT OBTAINED FROM THE BUFFER POOL
-		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		_n_pages = 1;
 
 		temp_file_fd1 = null;
@@ -204,14 +199,10 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 			throw new SortException(e, "Create heap file failed");
 		}
 
-		// Now, that stuff is setup, all we have to do is a get_next !!!!
-
 		// Setting up permutation array
-
 		Iterator temp_p_i1 = (Iterator) p_i1.clone();
 		permutationArray = new int[SIZEOFTABLE];
 		int permutationPosition = 0;
-		int i = 1;
 		Tuple l1 = null;
 		Tuple l2 = null;
 		while ((l1 = temp_p_i1.get_next()) != null) {
@@ -235,15 +226,7 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 			}
 			permutationArray[permutationPosition] = position;
 			permutationPosition++;
-			// i++;
 		}
-		
-		permutationArray[0] = 1;
-		permutationArray[1] = 2;
-		permutationArray[2] = 3;
-		permutationArray[3] = 4;
-		permutationArray[4] = 5;
-		
 
 		// SETTING up bit array
 		temp_p_i1 = (Iterator) p_i1.clone();
@@ -260,13 +243,8 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 	}
 
 	/**
-	 * The tuple is returned All this function has to do is to get 1 tuple from
-	 * one of the Iterators (from both initially), use the sorting order to
-	 * determine which one gets sent up. Amit) Hmmm it seems that some thing
-	 * more has to be done in order to account for duplicates.... => I am
-	 * following Raghu's 564 notes in order to obtain an algorithm for this
-	 * merging. Some funda about "equivalence classes"
-	 * 
+	 * This method executes self join with single predicate using the lighting fast algorithm. All the data are handled from disk using Iterators and Filescans.
+	 * Sorting is done using Heap Sort
 	 * @return the joined tuple is returned
 	 * @exception IOException
 	 *                I/O errors
@@ -308,7 +286,6 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 
 		// change based on condition
 		int eqOff = 1;
-		Tuple nextPositionTuple = new Tuple();
 
 		/* IEJoin - code */
 
@@ -319,7 +296,6 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 			Iterator tempP_i1 = (Iterator) p_i1.clone();
 			Iterator tempP_i2 = (Iterator) p_i2.clone();
 
-			
 			int tempPosition = position;
 			while (tempPosition > 0) {
 				tempPosition--;
@@ -328,9 +304,9 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 
 			// Now tuple1 contains the position tuple
 			// tuple1 = p_i2.get_next();
-			
+
 			bitArray[position - 1] = 1;
-			
+
 			for (int j = 0; j < n; j++) {
 				TempTuple1 = null;
 				TempTuple1 = (Tuple) tuple1.clone();
@@ -347,20 +323,14 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 					// Now tuple2 contains the jth position record.
 					// Add to projection
 
-					AttrType[] jtype2 = new AttrType[4];
-					jtype2[0] = new AttrType(AttrType.attrInteger);
-					jtype2[1] = new AttrType(AttrType.attrInteger);
-					jtype2[2] = new AttrType(AttrType.attrInteger);
-					jtype2[3] = new AttrType(AttrType.attrInteger);
-
 					if (i != j
-							&& TempTuple1.getIntFld(joinColumnOne) == tuple2.getIntFld(joinColumnTwo)
-							&& (condition.equalsIgnoreCase("2")
-							|| condition.equalsIgnoreCase("3"))) {
+							&& TempTuple1.getIntFld(joinColumnOne) == tuple2
+									.getIntFld(joinColumnTwo)
+							&& (condition.equalsIgnoreCase("2") || condition
+									.equalsIgnoreCase("3"))) {
 						Projection.Join(tuple2, _in2, TempTuple1, _in1, Jtuple,
 								perm_mat, nOutFlds);
 						totalNumberOfResult++;
-						Jtuple.print(jtype);
 					}
 
 					if (PredEval.Eval(OutputFilter, TempTuple1, tuple2, _in1,
@@ -371,7 +341,6 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 
 						totalNumberOfResult++;
 						Jtuple.print(jtype);
-						// return Jtuple;
 					}
 
 				}
@@ -381,9 +350,8 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 			while (tempP_i1.get_next() != null)
 				;
 		}
-		System.out.println("Tottal "+totalNumberOfResult);
+		System.out.println("Tottal " + totalNumberOfResult);
 		return null;
-		/* IE Join - endcode */
 	}
 
 	/**
@@ -405,14 +373,14 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 				p_i2.close();
 			} catch (Exception e) {
 				throw new JoinsException(e,
-						"SortMerge.java: error in closing iterator.");
+						"IESelfJoinSinglePredicate.java: error in closing iterator.");
 			}
 			if (temp_file_fd1 != null) {
 				try {
 					temp_file_fd1.deleteFile();
 				} catch (Exception e) {
 					throw new JoinsException(e,
-							"SortMerge.java: delete file failed");
+							"IESelfJoinSinglePredicate.java: delete file failed");
 				}
 				temp_file_fd1 = null;
 			}
@@ -421,7 +389,7 @@ public class IESelfJoinSinglePredicate extends Iterator implements GlobalConst {
 					temp_file_fd2.deleteFile();
 				} catch (Exception e) {
 					throw new JoinsException(e,
-							"SortMerge.java: delete file failed");
+							"IESelfJoinSinglePredicate.java: delete file failed");
 				}
 				temp_file_fd2 = null;
 			}
