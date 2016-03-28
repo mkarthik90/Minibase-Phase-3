@@ -19,7 +19,7 @@ public class Pt2DJoinTest
 	public static void main(String args[])
 	{
 		HelpBundle hb = new HelpBundle();
-        hb.parseQuery("queries/query_1b.txt");
+        hb.parseQuery("queries/query_2d.txt");
 
         if(hb.get_table2().equals("")||hb.get_table1().equals(hb.get_table2()))
         {
@@ -63,10 +63,10 @@ public class Pt2DJoinTest
 		Sprojection[2] = new FldSpec(new RelSpec(RelSpec.outer), 3);
 		Sprojection[3] = new FldSpec(new RelSpec(RelSpec.outer), 4);
 
-		Pt2DIEJoinInMem nlj = null;
+		Pt2DIEJoin nlj = null;
 		
 		try{//==================================================================CHANGE BASED ON COND==============================
-			nlj = new Pt2DIEJoinInMem(hb.get_table1(), Rprojection, Rtypes, 4, hb.get_table2(), Sprojection, Stypes,
+			nlj = new Pt2DIEJoin(hb.get_table1(), Rprojection, Rtypes, 4, hb.get_table2(), Sprojection, Stypes,
 					4, hb.get_fs(), hb.get_at(), hb.get_out_size(), hb.get_cond(), 10);
 		}
 		catch (Exception e) {
