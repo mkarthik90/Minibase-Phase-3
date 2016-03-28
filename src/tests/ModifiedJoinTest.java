@@ -22,7 +22,14 @@ public class ModifiedJoinTest
 		
 		HelpBundle hb = new HelpBundle();
         hb.parseQuery("queries/query_1b.txt");
-		DBBuilder.build(hb.get_table1());
+        if(hb.get_table2().equals("")||hb.get_table1().equals(hb.get_table2()))
+        {
+        	DBBuilder.build(hb.get_table1());
+        }
+        else
+        {
+        	DBBuilder.build(hb.get_table1(), hb.get_table2());
+        }
 
 		Tuple t = new Tuple();
 
