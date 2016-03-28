@@ -19,33 +19,10 @@ public class ModifiedJoinTest
 
 	public static void main(String args[])
 	{
-		DBBuilder db = new DBBuilder();
-
-		//Query 1-----------------------------------------------------------------------------------------------------
-		CondExpr[] outFilter = new CondExpr[2];
-		outFilter[0] = new CondExpr();
-		outFilter[1] = new CondExpr();
-
 		
-		//Condition 1-------------------------------------------------------------------------------------------------------
-		outFilter[0].next  = null;
-		outFilter[0].op    = new AttrOperator(AttrOperator.aopGE);
-		outFilter[0].type1 = new AttrType(AttrType.attrSymbol);
-		outFilter[0].type2 = new AttrType(AttrType.attrSymbol);
-		//outFilter[0].type2 = new AttrType(AttrType.attrInteger);
-		outFilter[0].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer),1);
-		outFilter[0].operand2.symbol = new FldSpec (new RelSpec(RelSpec.innerRel),1);
-		//outFilter[0].operand2.integer = 324535;
-
-		//Condition 2--------------------------------------------------------------------------------------------------------
-//		outFilter[1].op    = new AttrOperator(AttrOperator.aopLT);
-//		outFilter[1].next  = null;
-//		outFilter[1].type1 = new AttrType(AttrType.attrSymbol);
-//		outFilter[1].type2 = new AttrType(AttrType.attrSymbol);
-//		outFilter[1].operand1.symbol = new FldSpec (new RelSpec(RelSpec.innerRel),1);
-//		outFilter[1].operand2.symbol = new FldSpec (new RelSpec(RelSpec.outer),1);
-		outFilter[1] = null;
-		//----------------------------------------------------------------------------------------------------------------
+		HelpBundle hb = new HelpBundle();
+        hb.parseQuery("queries/query_1b.txt");
+		DBBuilder.build(hb.get_table1());
 
 		Tuple t = new Tuple();
 
@@ -70,13 +47,14 @@ public class ModifiedJoinTest
 
 		FileScan am = null;
 		try {
-			am  = new FileScan("R.in", Rtypes, Rsizes, 
+			am  = new FileScan(hb.get_table1() + ".in", Rtypes, Rsizes, 
 					(short)4, (short)4,
 					Rprojection, null);
 		}
 		catch (Exception e) {
 			System.err.println (""+e);
 		}
+		
 		
 		AttrType [] Stypes = new AttrType[4];
 		Stypes[0] = new AttrType (AttrType.attrInteger);
@@ -110,10 +88,11 @@ public class ModifiedJoinTest
 
 		TupleOrder ascending = new TupleOrder(TupleOrder.Ascending);
 		
-		ModifiedNestedLoopJoin nlj = null;
+		NestedLoopsJoins nlj = null;
 		
 		try{//==================================================================CHANGE BASED ON NUM OUTPUTS==============================
-			nlj = new ModifiedNestedLoopJoin(Stypes, 4, Ssizes, Rtypes, 4, Rsizes, 10, am, "R.in", outFilter, null, proj_list, 2, false);
+			nlj = new NestedLoopsJoins(Stypes, 4, Ssizes, Rtypes, 4, Rsizes, 10, am, hb.get_table2() + ".in",
+					hb.get_cond(), null, hb.get_fs(), hb.get_out_size());
 		}
 		catch (Exception e) {
 			System.err.println("*** join error in SortMerge constructor ***"); 
@@ -129,6 +108,10 @@ public class ModifiedJoinTest
 				t.print(jtype);
 				
 			}
+		}
+		catch(TupleUtilsException e)
+		{
+			
 		}
 		catch (Exception e) {
 			System.err.println (""+e);

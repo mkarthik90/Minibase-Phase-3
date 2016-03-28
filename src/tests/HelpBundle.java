@@ -46,7 +46,8 @@ public class HelpBundle {
 		intable22 = -1;
 		op1 = -1;
 		op2 = -1;
-		condition = new CondExpr[2];
+		condition = new CondExpr[3];
+		condition[2] = null;
 		projfs = null;
 		projat = null;
 		outsize = -1;
@@ -86,7 +87,14 @@ public class HelpBundle {
             	tabs2 = tabs[1].split("_");
                 if(tabs2[0].equals(Table1))
                 {
-                	outtable2 = OUTER;
+                	if(Table2.equals(Table1))
+                	{
+                		outtable2 = INNER;
+                	}
+                	else
+                	{
+                		outtable2 = OUTER;
+                	}
                 }
                 else
                 {
@@ -160,24 +168,10 @@ public class HelpBundle {
             condition[0].type1 = new AttrType(AttrType.attrSymbol);
             condition[0].type2 = new AttrType(AttrType.attrSymbol);
             RelSpec rs1 = null;
-            if(intable11 == OUTER)
-            {
-            	rs1 = new RelSpec(RelSpec.outer);
-            }
-            else
-            {
-            	rs1 = new RelSpec(RelSpec.innerRel);
-            }
+            rs1 = new RelSpec(RelSpec.outer);
             condition[0].operand1.symbol = new FldSpec (rs1, incol11);
             RelSpec rs2 = null;
-            if(intable12 == OUTER)
-            {
-            	rs2 = new RelSpec(RelSpec.outer);
-            }
-            else
-            {
-            	rs2 = new RelSpec(RelSpec.innerRel);
-            }
+           	rs2 = new RelSpec(RelSpec.innerRel);
             condition[0].operand2.symbol = new FldSpec (rs2, incol12);
             
             
@@ -193,24 +187,11 @@ public class HelpBundle {
                 condition[1].type1 = new AttrType(AttrType.attrSymbol);
                 condition[1].type2 = new AttrType(AttrType.attrSymbol);
                 rs1 = null;
-                if(intable21 == OUTER)
-                {
-                	rs1 = new RelSpec(RelSpec.outer);
-                }
-                else
-                {
-                	rs1 = new RelSpec(RelSpec.innerRel);
-                }
+                rs1 = new RelSpec(RelSpec.outer);
+                
                 condition[1].operand1.symbol = new FldSpec (rs1, incol21);
                 rs2 = null;
-                if(intable22 == OUTER)
-                {
-                	rs2 = new RelSpec(RelSpec.outer);
-                }
-                else
-                {
-                	rs2 = new RelSpec(RelSpec.innerRel);
-                }
+                rs2 = new RelSpec(RelSpec.innerRel);
                 condition[1].operand2.symbol = new FldSpec (rs2, incol22);
             }
 
